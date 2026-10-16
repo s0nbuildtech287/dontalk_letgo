@@ -90,26 +90,65 @@ export function renderSidebar(store) {
       </div>
     </aside>
 
+    <!-- MOBILE TOP APP BAR (<768px) -->
+    <header class="md:hidden fixed top-0 left-0 right-0 z-40 bg-[var(--color-bg-surface)]/95 backdrop-blur-md border-b border-[var(--color-border)] px-4 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#FF6B4A] to-[#FFA07A] flex items-center justify-center text-white shadow-sm">
+          <i data-lucide="map-pin" class="w-4 h-4 stroke-[2.5]"></i>
+        </div>
+        <span class="font-extrabold text-base tracking-tight text-[var(--color-text-main)]">Đi Thôi</span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Streak chip on mobile -->
+        <div class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFEBE6] text-[#FF6B4A] dark:bg-[#3D221B] dark:text-[#FF7B5C] text-xs font-bold">
+          <span>🔥</span>
+          <span>${store.streakWeeks} tuần</span>
+        </div>
+
+        <!-- Dark mode toggle -->
+        <button onclick="window.app.toggleTheme()" class="p-2 rounded-xl text-[var(--color-text-muted)] hover:bg-[var(--color-bg-subtle)]">
+          <i data-lucide="${isDark ? 'sun' : 'moon'}" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Avatar -->
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&auto=format&fit=crop&q=80" alt="Avatar" class="w-7 h-7 rounded-full object-cover ring-2 ring-[#FF6B4A]/30" />
+      </div>
+    </header>
+
     <!-- MOBILE BOTTOM NAVIGATION TAB BAR (<768px) -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--color-bg-surface)] border-t border-[var(--color-border)] flex items-center justify-around py-1.5 px-2 shadow-lg backdrop-blur-md">
-      ${menuItems.slice(0, 5).map(item => {
-        const isActive = currentTab === item.id;
-        return `
-          <button onclick="window.app.navigate('${item.id}')" class="flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
-            isActive ? 'text-[#FF6B4A] font-semibold' : 'text-[var(--color-text-muted)]'
-          }">
-            <div class="relative">
-              <i data-lucide="${item.icon}" class="w-5 h-5"></i>
-              ${item.badge !== null && item.badge > 0 ? `
-                <span class="absolute -top-1 -right-2 text-[9px] w-3.5 h-3.5 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center font-bold">
-                  ${item.badge > 9 ? '9+' : item.badge}
-                </span>
-              ` : ''}
-            </div>
-            <span class="text-[10px] mt-0.5">${item.label}</span>
-          </button>
-        `;
-      }).join('')}
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--color-bg-surface)]/95 backdrop-blur-md border-t border-[var(--color-border)] flex items-center justify-around py-1.5 px-1 shadow-lg">
+      <button onclick="window.app.navigate('home')" class="flex flex-col items-center justify-center flex-1 py-1 transition-colors ${currentTab === 'home' ? 'text-[#FF6B4A] font-bold' : 'text-[var(--color-text-muted)]'}">
+        <i data-lucide="compass" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-0.5">Trang chủ</span>
+      </button>
+
+      <button onclick="window.app.navigate('wishlist')" class="flex flex-col items-center justify-center flex-1 py-1 transition-colors ${currentTab === 'wishlist' ? 'text-[#FF6B4A] font-bold' : 'text-[var(--color-text-muted)]'}">
+        <div class="relative">
+          <i data-lucide="bookmark" class="w-5 h-5"></i>
+          <span class="absolute -top-1 -right-2 text-[9px] w-3.5 h-3.5 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center font-bold">
+            ${store.places.filter(p => p.status === 'want').length}
+          </span>
+        </div>
+        <span class="text-[10px] mt-0.5">Wishlist</span>
+      </button>
+
+      <!-- Center Floating Plus Button -->
+      <div class="flex items-center justify-center px-1">
+        <button onclick="window.app.openQuickAddModal()" class="w-11 h-11 -mt-4 rounded-full bg-gradient-to-tr from-[#FF6B4A] to-[#FFA07A] text-white flex items-center justify-center shadow-lg shadow-[#FF6B4A]/35 active:scale-95 transition-transform">
+          <i data-lucide="plus" class="w-6 h-6 stroke-[2.5]"></i>
+        </button>
+      </div>
+
+      <button onclick="window.app.navigate('planner')" class="flex flex-col items-center justify-center flex-1 py-1 transition-colors ${currentTab === 'planner' ? 'text-[#FF6B4A] font-bold' : 'text-[var(--color-text-muted)]'}">
+        <i data-lucide="calendar" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-0.5">Kế hoạch</span>
+      </button>
+
+      <button onclick="window.app.navigate('explore')" class="flex flex-col items-center justify-center flex-1 py-1 transition-colors ${currentTab === 'explore' ? 'text-[#FF6B4A] font-bold' : 'text-[var(--color-text-muted)]'}">
+        <i data-lucide="sparkles" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-0.5">Khám phá</span>
+      </button>
     </nav>
   `;
 }

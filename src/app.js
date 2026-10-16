@@ -63,7 +63,7 @@ class LetGoApp {
         ${renderSidebar(this.store)}
 
         <!-- CỘT 2: NỘI DUNG CHÍNH (FLUID, FULL WIDTH, KHÔNG GIỚI HẠN MAX-WIDTH HẸP) -->
-        <main class="flex-1 min-w-0 flex flex-col p-4 sm:p-6 lg:p-8 pb-24 md:pb-8 overflow-y-auto">
+        <main class="flex-1 min-w-0 flex flex-col p-4 sm:p-6 lg:p-8 pt-18 md:pt-6 pb-28 md:pb-8 overflow-y-auto">
           <!-- Top Header Navigation & Quick Search -->
           <header class="flex items-center justify-between gap-4 mb-6 select-none">
             <div>
