@@ -28,6 +28,11 @@ google:
     primary-account: ${PRIMARY_SERVICE_ACCOUNT:acc1.json}
     folder-id: ${GOOGLE_DRIVE_FOLDER_ID:1XemSItg_hJnT1D5ZLA0v3JowNR1MANjT}
 
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:wfrhz0tt}
+  api-key: ${CLOUDINARY_API_KEY:689521348186836}
+  api-secret: ${CLOUDINARY_API_SECRET:xc0i-feB99Dlp-zHgxDAnG4HZCU}
+
 springdoc:
   api-docs:
     path: /api-docs

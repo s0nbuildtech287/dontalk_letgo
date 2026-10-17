@@ -273,6 +273,79 @@ function ImageUploader({ imageUrl, setImageUrl }) {
 }
 
 // -------------------------------------------------------------
+// REUSABLE STAR RATING PICKER (1.0 -> 5.0)
+// -------------------------------------------------------------
+function StarRatingPicker({ rating, setRating }) {
+  const [hoverRating, setHoverRating] = useState(null);
+  const current = hoverRating !== null ? hoverRating : rating;
+
+  const getLabel = (val) => {
+    if (val >= 4.8) return 'Tuyệt vời / Đỉnh nóc ⭐';
+    if (val >= 4.5) return 'Rất ngon / Rất thích ✨';
+    if (val >= 4.0) return 'Khá ngon / Tốt 👍';
+    if (val >= 3.0) return 'Tạm ổn / Bình thường 👌';
+    return 'Chưa ưng ý lắm ⚠️';
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1.5">
+        <label className="text-xs font-bold text-[var(--color-text-main)] flex items-center gap-1.5">
+          <span>Đánh giá sao:</span>
+          <span className="text-amber-500 font-extrabold text-sm">{Number(rating).toFixed(1)} / 5.0</span>
+        </label>
+        <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">
+          {getLabel(rating)}
+        </span>
+      </div>
+
+      <div className="p-2.5 rounded-2xl bg-[var(--color-bg-subtle)] border border-[var(--color-border)] flex flex-wrap items-center justify-between gap-2">
+        {/* 5 Interactive Stars */}
+        <div className="flex items-center gap-1">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              type="button"
+              onMouseEnter={() => setHoverRating(star)}
+              onMouseLeave={() => setHoverRating(null)}
+              onClick={() => setRating(star)}
+              className="p-1 hover:scale-125 active:scale-95 transition-transform"
+              title={`${star} sao`}
+            >
+              <Star
+                className={`w-5 h-5 transition-colors ${
+                  star <= current
+                    ? 'fill-amber-400 text-amber-400 drop-shadow-sm'
+                    : 'text-stone-300 dark:text-stone-600'
+                }`}
+              />
+            </button>
+          ))}
+        </div>
+
+        {/* Quick decimal presets */}
+        <div className="flex items-center gap-1">
+          {[3.5, 4.0, 4.5, 4.8, 5.0].map((val) => (
+            <button
+              key={val}
+              type="button"
+              onClick={() => setRating(val)}
+              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                Math.abs(rating - val) < 0.05
+                  ? 'bg-amber-500 text-white shadow-xs scale-105'
+                  : 'bg-[var(--color-bg-surface)] text-[var(--color-text-muted)] hover:text-amber-500 border border-[var(--color-border-subtle)]'
+              }`}
+            >
+              {val.toFixed(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// -------------------------------------------------------------
 // 1. QUICK ADD MODAL
 // -------------------------------------------------------------
 function QuickAddModal({ onClose, onAdd }) {
@@ -280,6 +353,7 @@ function QuickAddModal({ onClose, onAdd }) {
   const [location, setLocation] = useState('');
   const [category, setCategory] = useState('an');
   const [priceText, setPriceText] = useState('50k - 100k');
+  const [rating, setRating] = useState(4.5);
   const [imageUrl, setImageUrl] = useState('');
   const [sourceLink, setSourceLink] = useState('');
   const [reviewNote, setReviewNote] = useState('');
@@ -308,6 +382,7 @@ function QuickAddModal({ onClose, onAdd }) {
       categoryLabel: categoryLabels[category] || 'Ăn uống',
       priceRange: computedPriceRange,
       priceText: finalPriceText,
+      rating: Number(rating) || 4.5,
       imageUrl: imageUrl || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80',
       sourceLink: sourceLink.trim(),
       reviewNote,
@@ -418,6 +493,9 @@ function QuickAddModal({ onClose, onAdd }) {
               className="w-full bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] text-xs px-3.5 py-2.5 rounded-xl border border-[var(--color-border)] focus:border-[#FF6B4A] focus:outline-none"
             />
           </div>
+
+          {/* Đánh giá số sao */}
+          <StarRatingPicker rating={rating} setRating={setRating} />
 
           {/* Link bài viết (TikTok, FB, YouTube, Maps...) */}
           <div>
@@ -669,6 +747,7 @@ function EditModal({ place, onClose, onUpdate }) {
   const [location, setLocation] = useState(place.location || '');
   const [category, setCategory] = useState(place.category || 'an');
   const [priceText, setPriceText] = useState(place.priceText || place.priceRange || '50k - 100k');
+  const [rating, setRating] = useState(place.rating || 4.5);
   const [imageUrl, setImageUrl] = useState(place.imageUrl || '');
   const [sourceLink, setSourceLink] = useState(place.sourceLink || '');
   const [reviewNote, setReviewNote] = useState(place.reviewNote || '');
@@ -694,6 +773,7 @@ function EditModal({ place, onClose, onUpdate }) {
       categoryLabel: categoryLabels[category] || place.categoryLabel,
       priceText: finalPriceText,
       priceRange: computedPriceRange,
+      rating: Number(rating) || 4.5,
       imageUrl,
       sourceLink: sourceLink.trim(),
       reviewNote
@@ -784,6 +864,9 @@ function EditModal({ place, onClose, onUpdate }) {
               </div>
             </div>
           </div>
+
+          {/* Đánh giá số sao */}
+          <StarRatingPicker rating={rating} setRating={setRating} />
 
           {/* Link bài viết */}
           <div>

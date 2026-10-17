@@ -2,7 +2,7 @@ package com.letgoo.controller;
 
 import com.letgoo.dto.ApiResponse;
 import com.letgoo.dto.UploadResponse;
-import com.letgoo.service.GoogleDriveService;
+import com.letgoo.service.CloudinaryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -16,22 +16,22 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/api/upload")
 @RequiredArgsConstructor
-@Tag(name = "Upload", description = "Endpoints for uploading media directly to Google Drive")
+@Tag(name = "Upload", description = "Endpoints for uploading media directly to Cloudinary")
 public class UploadController {
 
-    private final GoogleDriveService googleDriveService;
+    private final CloudinaryService cloudinaryService;
 
     @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "Upload image file directly to Google Drive via Service Account")
+    @Operation(summary = "Upload image file directly to Cloudinary")
     public ResponseEntity<ApiResponse<UploadResponse>> uploadImage(
             @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "folderId", required = false) String folderId
+            @RequestParam(value = "folder", required = false) String folder
     ) throws IOException {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(ApiResponse.error("Vui lòng chọn file ảnh để tải lên"));
         }
 
-        UploadResponse response = googleDriveService.uploadImage(file, folderId);
-        return ResponseEntity.ok(ApiResponse.ok("Tải ảnh lên Google Drive thành công!", response));
+        UploadResponse response = cloudinaryService.uploadImage(file, folder);
+        return ResponseEntity.ok(ApiResponse.ok("Tải ảnh lên thành công!", response));
     }
 }

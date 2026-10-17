@@ -266,7 +266,7 @@ export function StoreProvider({ children }) {
       priceText: placeData.priceText || placeData.priceRange || "50k - 100k",
       status: placeData.status || "want",
       savedDaysAgo: 0,
-      rating: placeData.rating || 4.5,
+      rating: (placeData.rating !== undefined && placeData.rating !== null) ? Number(placeData.rating) : 4.5,
       reviewNote: placeData.reviewNote || "",
       imageUrl: placeData.imageUrl || "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80",
       mapCoords: placeData.mapCoords || [10.7769, 106.7009],
