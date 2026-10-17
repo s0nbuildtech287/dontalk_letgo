@@ -54,8 +54,8 @@ export function App() {
         };
       default:
         return {
-          title: 'Đi Thôi',
-          subtitle: '',
+          title: 'LetGoo',
+          subtitle: "Don't Talk, Let's Go!",
           countText: ''
         };
     }
@@ -70,6 +70,22 @@ export function App() {
 
       {/* CỘT 2: NỘI DUNG CHÍNH (FLUID, FULL WIDTH) */}
       <main className="flex-1 min-w-0 flex flex-col p-4 sm:p-6 lg:p-8 pt-[70px] md:pt-6 pb-[85px] md:pb-8 overflow-y-auto">
+        {/* Mobile Top App Bar */}
+        <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-[var(--color-bg-surface)]/95 backdrop-blur-md border-b border-[var(--color-border)] px-4 flex items-center justify-between z-30 select-none">
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="LetGoo Logo" className="w-8 h-8 object-contain drop-shadow-sm" />
+            <span className="font-black text-lg text-[var(--color-text-main)]">
+              Let<span className="text-[#FF6B4A]">Goo</span>!
+            </span>
+          </div>
+          <button 
+            onClick={() => setIsQuickAddOpen(true)}
+            className="p-2 rounded-xl bg-[var(--color-primary)] text-white shadow-sm active:scale-95 transition-transform"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+
         {/* Top Header */}
         <header className="flex items-center justify-between gap-4 mb-6 select-none">
           <div>

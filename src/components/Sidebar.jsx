@@ -45,15 +45,15 @@ export function Sidebar() {
             onClick={() => setActiveTab('home')}
             className="flex items-center gap-2.5 cursor-pointer group"
           >
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#FF6B4A] to-[#FFA07A] flex items-center justify-center text-white shadow-md shadow-[#FF6B4A]/25 group-hover:scale-105 transition-transform">
-              <Footprints className="w-5 h-5 -rotate-12" />
+            <div className="w-11 h-11 shrink-0 drop-shadow-md group-hover:scale-105 group-hover:rotate-3 transition-transform">
+              <img src="/logo.png" alt="LetGoo Logo" className="w-full h-full object-contain" />
             </div>
             <div>
-              <span className="font-black text-lg tracking-tight text-[var(--color-text-main)] block leading-none">
-                Đi Thôi<span className="text-[#FF6B4A]">!</span>
+              <span className="font-black text-xl tracking-tight text-[var(--color-text-main)] block leading-none">
+                Let<span className="text-[#FF6B4A]">Goo</span><span className="text-amber-500">!</span>
               </span>
-              <span className="text-[10px] font-semibold text-[var(--color-text-muted)] tracking-wider uppercase mt-1 block">
-                Let Go Now
+              <span className="text-[9px] font-bold text-[#FF6B4A] tracking-wider uppercase mt-1 block">
+                Don't Talk • Let's Go
               </span>
             </div>
           </div>
