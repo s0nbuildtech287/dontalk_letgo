@@ -193,7 +193,7 @@ export function RightPanel() {
                         className="text-xs font-bold text-[var(--color-text-main)] hover:text-[#FF6B4A] truncate cursor-pointer flex items-center justify-between"
                       >
                         <span className="truncate">{p.title}</span>
-                        <span className="text-[10px] text-[var(--color-text-muted)] font-normal ml-2 shrink-0">{p.priceRange}</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)] font-normal ml-2 shrink-0">{p.priceText || p.priceRange}</span>
                       </div>
                     ))}
                   </div>

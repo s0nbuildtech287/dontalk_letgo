@@ -198,7 +198,7 @@ export function WeekPlanner() {
 
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-[var(--color-bg-subtle)] text-[var(--color-text-muted)]">
-                      {p.priceRange}
+                      {p.priceText || p.priceRange}
                     </span>
                     <button 
                       onClick={() => removeFromPlan(p.id, selectedDay)}

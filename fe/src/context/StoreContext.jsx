@@ -263,7 +263,7 @@ export function StoreProvider({ children }) {
       category: placeData.category || "an",
       categoryLabel: placeData.categoryLabel || "Ăn ngon",
       priceRange: placeData.priceRange || "$$",
-      priceText: placeData.priceText || "50k - 100k",
+      priceText: placeData.priceText || placeData.priceRange || "50k - 100k",
       status: placeData.status || "want",
       savedDaysAgo: 0,
       rating: placeData.rating || 4.5,

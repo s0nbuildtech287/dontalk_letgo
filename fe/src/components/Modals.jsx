@@ -33,6 +33,27 @@ export function getSourceInfo(url) {
   return { label: 'Bài viết', icon: '🔗', color: 'bg-stone-700 text-white' };
 }
 
+export function inferPriceRange(priceStr) {
+  if (!priceStr || typeof priceStr !== 'string') return '$$';
+  const clean = priceStr.toLowerCase().replace(/[,.]/g, '');
+  const matches = clean.match(/\d+/g);
+  if (!matches || matches.length === 0) {
+    if (priceStr.includes('$$$')) return '$$$';
+    if (priceStr.includes('$$')) return '$$';
+    if (priceStr.includes('$')) return '$';
+    return '$$';
+  }
+  let maxVal = 0;
+  for (const m of matches) {
+    let val = parseInt(m, 10);
+    if (val < 1000) val = val * 1000;
+    if (val > maxVal) maxVal = val;
+  }
+  if (maxVal <= 50000) return '$';
+  if (maxVal <= 200000) return '$$';
+  return '$$$';
+}
+
 export function Modals() {
   const { 
     isQuickAddOpen, 
@@ -258,7 +279,7 @@ function QuickAddModal({ onClose, onAdd }) {
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [category, setCategory] = useState('an');
-  const [priceRange, setPriceRange] = useState('$$');
+  const [priceText, setPriceText] = useState('50k - 100k');
   const [imageUrl, setImageUrl] = useState('');
   const [sourceLink, setSourceLink] = useState('');
   const [reviewNote, setReviewNote] = useState('');
@@ -277,12 +298,16 @@ function QuickAddModal({ onClose, onAdd }) {
       workshop: 'Workshop & Chơi'
     };
 
+    const finalPriceText = priceText.trim() || 'Tùy chọn';
+    const computedPriceRange = inferPriceRange(finalPriceText);
+
     onAdd({
       title,
       location: location || 'TP. Hồ Chí Minh',
       category,
       categoryLabel: categoryLabels[category] || 'Ăn uống',
-      priceRange,
+      priceRange: computedPriceRange,
+      priceText: finalPriceText,
       imageUrl: imageUrl || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80',
       sourceLink: sourceLink.trim(),
       reviewNote,
@@ -330,8 +355,8 @@ function QuickAddModal({ onClose, onAdd }) {
             />
           </div>
 
-          {/* Danh mục & Giá */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Danh mục & Khoảng giá */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-bold text-[var(--color-text-main)] block mb-1">
                 Danh mục
@@ -351,17 +376,32 @@ function QuickAddModal({ onClose, onAdd }) {
 
             <div>
               <label className="text-xs font-bold text-[var(--color-text-main)] block mb-1">
-                Khoảng giá
+                Khoảng giá (tự điền)
               </label>
-              <select 
-                value={priceRange}
-                onChange={(e) => setPriceRange(e.target.value)}
-                className="w-full bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] text-xs px-3 py-2.5 rounded-xl border border-[var(--color-border)] focus:border-[#FF6B4A] focus:outline-none"
-              >
-                <option value="$">$ (&lt; 50k)</option>
-                <option value="$$">$$ (50k - 200k)</option>
-                <option value="$$$">$$$ (&gt; 200k)</option>
-              </select>
+              <input 
+                type="text" 
+                value={priceText}
+                onChange={(e) => setPriceText(e.target.value)}
+                placeholder="VD: 35k - 60k, 150k/người..."
+                className="w-full bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] text-xs px-3.5 py-2.5 rounded-xl border border-[var(--color-border)] focus:border-[#FF6B4A] focus:outline-none"
+              />
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                {[
+                  { label: '< 50k', val: '25k - 45k' },
+                  { label: '50k - 100k', val: '50k - 100k' },
+                  { label: '100k - 200k', val: '100k - 200k' },
+                  { label: '> 200k', val: '250k - 450k/người' }
+                ].map((chip) => (
+                  <button
+                    key={chip.label}
+                    type="button"
+                    onClick={() => setPriceText(chip.val)}
+                    className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--color-bg-subtle)] hover:bg-[#FFEBE6] hover:text-[#FF6B4A] dark:hover:bg-[#3D221B] text-[var(--color-text-muted)] transition-colors border border-[var(--color-border-subtle)]"
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -627,6 +667,8 @@ function ScheduleModal({ place, onClose, onAssign }) {
 function EditModal({ place, onClose, onUpdate }) {
   const [title, setTitle] = useState(place.title || '');
   const [location, setLocation] = useState(place.location || '');
+  const [category, setCategory] = useState(place.category || 'an');
+  const [priceText, setPriceText] = useState(place.priceText || place.priceRange || '50k - 100k');
   const [imageUrl, setImageUrl] = useState(place.imageUrl || '');
   const [sourceLink, setSourceLink] = useState(place.sourceLink || '');
   const [reviewNote, setReviewNote] = useState(place.reviewNote || '');
@@ -635,9 +677,23 @@ function EditModal({ place, onClose, onUpdate }) {
 
   const handleSave = (e) => {
     e.preventDefault();
+    const categoryLabels = {
+      an: 'Ăn ngon',
+      cafe: 'Cà phê',
+      chill: 'Quán chill',
+      dulich: 'Du lịch & Cắm trại',
+      workshop: 'Workshop & Chơi'
+    };
+    const finalPriceText = priceText.trim() || 'Tùy chọn';
+    const computedPriceRange = inferPriceRange(finalPriceText);
+
     onUpdate(place.id, {
       title,
       location,
+      category,
+      categoryLabel: categoryLabels[category] || place.categoryLabel,
+      priceText: finalPriceText,
+      priceRange: computedPriceRange,
       imageUrl,
       sourceLink: sourceLink.trim(),
       reviewNote
@@ -677,6 +733,56 @@ function EditModal({ place, onClose, onUpdate }) {
               onChange={(e) => setLocation(e.target.value)}
               className="w-full bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] text-xs px-3 py-2.5 rounded-xl border border-[var(--color-border)] focus:border-[#FF6B4A] focus:outline-none"
             />
+          </div>
+
+          {/* Danh mục & Khoảng giá */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-bold text-[var(--color-text-main)] block mb-1">
+                Danh mục
+              </label>
+              <select 
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] text-xs px-3 py-2.5 rounded-xl border border-[var(--color-border)] focus:border-[#FF6B4A] focus:outline-none"
+              >
+                <option value="an">🍜 Ăn ngon</option>
+                <option value="cafe">☕ Cà phê</option>
+                <option value="chill">🍹 Quán chill</option>
+                <option value="dulich">🏕️ Du lịch & Cắm trại</option>
+                <option value="workshop">🎨 Workshop & Chơi</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-[var(--color-text-main)] block mb-1">
+                Khoảng giá (tự điền)
+              </label>
+              <input 
+                type="text" 
+                value={priceText}
+                onChange={(e) => setPriceText(e.target.value)}
+                placeholder="VD: 35k - 60k, 150k/người..."
+                className="w-full bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] text-xs px-3 py-2.5 rounded-xl border border-[var(--color-border)] focus:border-[#FF6B4A] focus:outline-none"
+              />
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                {[
+                  { label: '< 50k', val: '25k - 45k' },
+                  { label: '50k - 100k', val: '50k - 100k' },
+                  { label: '100k - 200k', val: '100k - 200k' },
+                  { label: '> 200k', val: '250k - 450k/người' }
+                ].map((chip) => (
+                  <button
+                    key={chip.label}
+                    type="button"
+                    onClick={() => setPriceText(chip.val)}
+                    className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--color-bg-subtle)] hover:bg-[#FFEBE6] hover:text-[#FF6B4A] dark:hover:bg-[#3D221B] text-[var(--color-text-muted)] transition-colors border border-[var(--color-border-subtle)]"
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Link bài viết */}
