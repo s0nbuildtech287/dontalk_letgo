@@ -23,7 +23,8 @@ export function Sidebar() {
     toggleTheme, 
     setIsQuickAddOpen,
     stats,
-    overduePlaces
+    overduePlaces,
+    openLanding
   } = useAppStore();
 
   const navItems = [
@@ -106,6 +107,16 @@ export function Sidebar() {
               </button>
             );
           })}
+
+          <div className="pt-2 border-t border-[var(--color-border-subtle)] my-2">
+            <button
+              onClick={openLanding}
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-[var(--color-text-muted)] hover:bg-[var(--color-bg-subtle)] hover:text-[#FF6B4A] transition-all"
+            >
+              <Sparkles className="w-4 h-4 text-amber-500" />
+              <span>Trang giới thiệu</span>
+            </button>
+          </div>
         </nav>
 
         {/* USER PROFILE CARD */}

@@ -9,10 +9,20 @@ import { AIPlanner } from './components/AIPlanner';
 import { GroupView } from './components/GroupView';
 import { JournalView } from './components/JournalView';
 import { Modals } from './components/Modals';
-import { Plus, Footprints } from 'lucide-react';
+import { LandingPage } from './components/LandingPage';
+import { Plus, Footprints, Sparkles } from 'lucide-react';
 
 export function App() {
-  const { activeTab, places, setIsQuickAddOpen } = useAppStore();
+  const { activeTab, places, setIsQuickAddOpen, isLandingPage, openLanding } = useAppStore();
+
+  if (isLandingPage) {
+    return (
+      <>
+        <LandingPage />
+        <Modals />
+      </>
+    );
+  }
 
   const getPageInfo = () => {
     switch (activeTab) {
@@ -102,14 +112,25 @@ export function App() {
             </p>
           </div>
 
-          {/* Quick Add Button Header */}
-          <button 
-            onClick={() => setIsQuickAddOpen(true)}
-            className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-xs font-bold shadow-md shadow-[#FF6B4A]/20 transition-all hover:shadow"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Thêm quán mới</span>
-          </button>
+          {/* Header Quick Actions */}
+          <div className="flex items-center gap-2.5">
+            <button 
+              onClick={openLanding}
+              title="Xem trang giới thiệu"
+              className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--color-bg-surface)] hover:bg-[var(--color-bg-subtle)] text-[var(--color-text-muted)] hover:text-[#FF6B4A] border border-[var(--color-border)] text-xs font-bold transition-colors"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <span>Trang giới thiệu</span>
+            </button>
+
+            <button 
+              onClick={() => setIsQuickAddOpen(true)}
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-xs font-bold shadow-md shadow-[#FF6B4A]/20 transition-all hover:shadow"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Thêm quán mới</span>
+            </button>
+          </div>
         </header>
 
         {/* SCREEN CONTENT */}

@@ -41,6 +41,11 @@ export function StoreProvider({ children }) {
     };
   });
 
+  const [isLandingPage, setIsLandingPage] = useState(() => {
+    const hash = window.location.hash.replace('#', '');
+    return hash === 'welcome' || !hash;
+  });
+
   const [activeTab, setActiveTab] = useState(() => {
     const hash = window.location.hash.replace('#', '');
     if (['home', 'wishlist', 'planner', 'explore', 'group', 'journal'].includes(hash)) {
@@ -95,11 +100,14 @@ export function StoreProvider({ children }) {
     }
   }, [weekPlans]);
 
-  // Sync hash with activeTab
+  // Sync hash with activeTab and landing page
   useEffect(() => {
     const handleHash = () => {
-      const hash = window.location.hash.replace('#', '') || 'home';
-      if (['home', 'wishlist', 'planner', 'explore', 'group', 'journal'].includes(hash)) {
+      const hash = window.location.hash.replace('#', '');
+      if (hash === 'welcome' || !hash) {
+        setIsLandingPage(true);
+      } else if (['home', 'wishlist', 'planner', 'explore', 'group', 'journal'].includes(hash)) {
+        setIsLandingPage(false);
         setActiveTab(hash);
       }
     };
@@ -108,8 +116,20 @@ export function StoreProvider({ children }) {
   }, []);
 
   const changeTab = (tab) => {
+    setIsLandingPage(false);
     window.location.hash = tab;
     setActiveTab(tab);
+  };
+
+  const enterApp = () => {
+    setIsLandingPage(false);
+    window.location.hash = 'home';
+    setActiveTab('home');
+  };
+
+  const openLanding = () => {
+    setIsLandingPage(true);
+    window.location.hash = 'welcome';
   };
 
   const toggleTheme = () => {
@@ -271,6 +291,9 @@ export function StoreProvider({ children }) {
     visitedPlaces,
     stats,
     weekPlans,
+    isLandingPage,
+    enterApp,
+    openLanding,
     activeTab,
     setActiveTab: changeTab,
     viewMode,
