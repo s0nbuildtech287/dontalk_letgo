@@ -1,11 +1,17 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { INITIAL_PLACES, INITIAL_GROUP_MEMBERS } from '../data/initialPlaces.js';
+import { 
+  FALLBACK_PLACES, 
+  FALLBACK_WEEK_PLANS, 
+  FALLBACK_PLAN_DETAILS, 
+  INITIAL_GROUP_MEMBERS 
+} from '../data/initialPlaces.js';
 import { api } from '../api/client.js';
 
-const STORAGE_KEY_PLACES = 'letgoo_places_v2';
+const STORAGE_KEY_USER_PLACES = 'letgoo_user_places_v2';
 const STORAGE_KEY_THEME = 'letgoo_theme_v2';
-const STORAGE_KEY_PLANS = 'letgoo_plans_v2';
+const STORAGE_KEY_USER_PLANS = 'letgoo_user_plans_v2';
 const STORAGE_KEY_USER = 'letgoo_user_v2';
+const STORAGE_KEY_USER_PLAN_DETAILS = 'letgoo_user_plan_details_v2';
 
 const StoreContext = createContext(null);
 
@@ -26,10 +32,10 @@ export function StoreProvider({ children }) {
     return localStorage.getItem(STORAGE_KEY_THEME) || 'light';
   });
 
-  // Places state (Empty by default so user can test adding fresh data)
-  const [places, setPlaces] = useState(() => {
+  // User's own places (persisted in DB/Google Sheets & localStorage, empty initially)
+  const [userPlaces, setUserPlaces] = useState(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY_PLACES);
+      const saved = localStorage.getItem(STORAGE_KEY_USER_PLACES);
       if (saved) return JSON.parse(saved);
     } catch (e) {
       console.warn("Could not load from localStorage", e);
@@ -37,10 +43,10 @@ export function StoreProvider({ children }) {
     return [];
   });
 
-  // Week plans (Empty by default)
-  const [weekPlans, setWeekPlans] = useState(() => {
+  // User's own week plans
+  const [userWeekPlans, setUserWeekPlans] = useState(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY_PLANS);
+      const saved = localStorage.getItem(STORAGE_KEY_USER_PLANS);
       if (saved) return JSON.parse(saved);
     } catch (e) {}
     return {
@@ -53,6 +59,31 @@ export function StoreProvider({ children }) {
       "Chủ Nhật": []
     };
   });
+
+  // User's own plan details (time, note, date)
+  const [userPlanDetails, setUserPlanDetails] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_USER_PLAN_DETAILS);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // EFFECTIVE DATA:
+  // If currentUser is logged in: show user's own data (empty initially so user adds their own)
+  // If not logged in (!currentUser): show fallback preview (5 món + 5 địa điểm) so guests can view & experience
+  const places = useMemo(() => {
+    return currentUser ? userPlaces : FALLBACK_PLACES;
+  }, [currentUser, userPlaces]);
+
+  const weekPlans = useMemo(() => {
+    return currentUser ? userWeekPlans : FALLBACK_WEEK_PLANS;
+  }, [currentUser, userWeekPlans]);
+
+  const planDetails = useMemo(() => {
+    return currentUser ? userPlanDetails : FALLBACK_PLAN_DETAILS;
+  }, [currentUser, userPlanDetails]);
 
   const [isLandingPage, setIsLandingPage] = useState(() => {
     const hash = window.location.hash.replace('#', '');
@@ -96,40 +127,47 @@ export function StoreProvider({ children }) {
     }
   }, [theme]);
 
-  // Sync places with localStorage
+  // Sync user places with localStorage
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY_PLACES, JSON.stringify(places));
+      localStorage.setItem(STORAGE_KEY_USER_PLACES, JSON.stringify(userPlaces));
     } catch (e) {
       console.error("Failed to save places to localStorage", e);
     }
-  }, [places]);
+  }, [userPlaces]);
 
-  // Sync week plans with localStorage
+  // Sync user week plans with localStorage
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY_PLANS, JSON.stringify(weekPlans));
+      localStorage.setItem(STORAGE_KEY_USER_PLANS, JSON.stringify(userWeekPlans));
     } catch (e) {
       console.error("Failed to save plans to localStorage", e);
     }
-  }, [weekPlans]);
+  }, [userWeekPlans]);
 
-  // Load initial data from PostgreSQL backend on mount
+  // Sync user plan details with localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_USER_PLAN_DETAILS, JSON.stringify(userPlanDetails));
+    } catch (e) {}
+  }, [userPlanDetails]);
+
+  // Load initial data from PostgreSQL backend / Google Sheet on mount
   useEffect(() => {
     let active = true;
     api.places.getAll().then(data => {
       if (active && Array.isArray(data)) {
-        setPlaces(data);
+        setUserPlaces(data);
         try {
-          localStorage.setItem(STORAGE_KEY_PLACES, JSON.stringify(data));
+          localStorage.setItem(STORAGE_KEY_USER_PLACES, JSON.stringify(data));
         } catch (e) {}
       }
     });
     api.plans.getAll().then(data => {
       if (active && data && typeof data === 'object') {
-        setWeekPlans(data);
+        setUserWeekPlans(data);
         try {
-          localStorage.setItem(STORAGE_KEY_PLANS, JSON.stringify(data));
+          localStorage.setItem(STORAGE_KEY_USER_PLANS, JSON.stringify(data));
         } catch (e) {}
       }
     });
@@ -260,11 +298,11 @@ export function StoreProvider({ children }) {
     });
   };
 
-  // Place actions (Guarded by auth and synced with PostgreSQL)
+  // Place actions (Guarded by auth and synced with PostgreSQL / Google Sheets)
   const addPlace = (placeData) => {
     if (!checkAuth('thêm địa điểm')) return null;
 
-    const nextStt = places.length + 1;
+    const nextStt = userPlaces.length + 1;
     const newPlace = {
       id: "place-" + Date.now(),
       title: placeData.title || "Địa điểm mới",
@@ -286,23 +324,23 @@ export function StoreProvider({ children }) {
       suggestedWeek: false,
       scheduledDate: placeData.scheduledDate || null
     };
-    setPlaces(prev => [...prev, newPlace]);
-    // Persist to PostgreSQL backend
+    setUserPlaces(prev => [...prev, newPlace]);
+    // Persist to backend / Google Sheet
     api.places.create(newPlace);
     return newPlace;
   };
 
   const updatePlace = (id, updates) => {
     if (!checkAuth('cập nhật địa điểm')) return;
-    setPlaces(prev => prev.map(p => (p.id === id ? { ...p, ...updates } : p)));
+    setUserPlaces(prev => prev.map(p => (p.id === id ? { ...p, ...updates } : p)));
     api.places.update(id, updates);
   };
 
   const deletePlace = (id) => {
     if (!checkAuth('xóa địa điểm')) return;
-    setPlaces(prev => prev.filter(p => p.id !== id));
+    setUserPlaces(prev => prev.filter(p => p.id !== id));
     // Remove from week plans if exists
-    setWeekPlans(prev => {
+    setUserWeekPlans(prev => {
       const updated = { ...prev };
       Object.keys(updated).forEach(day => {
         updated[day] = updated[day].filter(pid => pid !== id);
@@ -314,7 +352,7 @@ export function StoreProvider({ children }) {
 
   const changeStatus = (id, newStatus, extraData = {}) => {
     if (!checkAuth('thay đổi trạng thái')) return;
-    setPlaces(prev => prev.map(p => {
+    setUserPlaces(prev => prev.map(p => {
       if (p.id === id) {
         const updated = { ...p, status: newStatus, ...extraData };
         if (newStatus === 'visited') {
@@ -331,7 +369,7 @@ export function StoreProvider({ children }) {
     }));
 
     if (newStatus === 'visited') {
-      setWeekPlans(prev => {
+      setUserWeekPlans(prev => {
         const nextPlans = { ...prev };
         Object.keys(nextPlans).forEach(day => {
           nextPlans[day] = (nextPlans[day] || []).filter(pid => pid !== id);
@@ -345,7 +383,7 @@ export function StoreProvider({ children }) {
 
   const toggleVote = (id) => {
     if (!checkAuth('bình chọn')) return;
-    setPlaces(prev => prev.map(p => {
+    setUserPlaces(prev => prev.map(p => {
       if (p.id === id) {
         return { ...p, votes: (p.votes || 0) + 1 };
       }
@@ -354,27 +392,12 @@ export function StoreProvider({ children }) {
     api.places.vote(id);
   };
 
-  const [planDetails, setPlanDetails] = useState(() => {
-    try {
-      const saved = localStorage.getItem('letgoo_plan_details');
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('letgoo_plan_details', JSON.stringify(planDetails));
-    } catch (e) {}
-  }, [planDetails]);
-
   const assignToPlan = (placeId, dayNames, options = {}) => {
     if (!checkAuth('lên lịch trình')) return;
     const days = Array.isArray(dayNames) ? dayNames : [dayNames];
     if (days.length === 0) return;
 
-    setWeekPlans(prev => {
+    setUserWeekPlans(prev => {
       const updated = { ...prev };
       days.forEach(day => {
         const dayList = updated[day] || [];
@@ -385,7 +408,7 @@ export function StoreProvider({ children }) {
       return updated;
     });
 
-    setPlanDetails(prev => {
+    setUserPlanDetails(prev => {
       const updated = { ...prev };
       days.forEach(day => {
         const key = `${day}-${placeId}`;
@@ -404,7 +427,7 @@ export function StoreProvider({ children }) {
 
   const removeFromPlan = (placeId, dayName) => {
     if (!checkAuth('xóa khỏi lịch trình')) return;
-    setWeekPlans(prev => {
+    setUserWeekPlans(prev => {
       if (!prev[dayName]) return prev;
       return {
         ...prev,
@@ -412,7 +435,7 @@ export function StoreProvider({ children }) {
       };
     });
 
-    setPlanDetails(prev => {
+    setUserPlanDetails(prev => {
       const updated = { ...prev };
       delete updated[`${dayName}-${placeId}`];
       return updated;
@@ -422,7 +445,7 @@ export function StoreProvider({ children }) {
   };
 
   const updatePlanDetail = (placeId, dayName, updates = {}) => {
-    setPlanDetails(prev => {
+    setUserPlanDetails(prev => {
       const key = `${dayName}-${placeId}`;
       return {
         ...prev,
@@ -437,7 +460,6 @@ export function StoreProvider({ children }) {
   // Computed values
   const filteredPlaces = useMemo(() => {
     // 1. Chỉ các địa điểm chưa đi (want hoặc scheduled) mới có STT ưu tiên (#1, #2, #3...)
-    // Khi 1 địa điểm đã đi, nó nhường vị trí STT cho các địa điểm còn lại trong Wishlist!
     let unvisitedCounter = 0;
     const withDynamicStt = places.map((p) => {
       if (p.status !== 'visited') {
@@ -460,7 +482,6 @@ export function StoreProvider({ children }) {
         if (p.status !== filters.status) return false;
       } else {
         // Mặc định trong Wishlist: Không hiện các địa điểm đã đi ('visited')
-        // Những địa điểm đã đi sẽ chuyển hẳn sang mục "Kỷ niệm đã đi" (Journal)
         if (p.status === 'visited') return false;
       }
       if (filters.location !== 'all') {
@@ -479,10 +500,10 @@ export function StoreProvider({ children }) {
     // Sorting by user preference
     result.sort((a, b) => {
       if (filters.sortBy === 'priority') {
-        return (a.stt || 9999) - (b.stt || 9999); // Thêm trước ưu tiên đi trước (#1 -> #N)
+        return (a.stt || 9999) - (b.stt || 9999);
       }
       if (filters.sortBy === 'newest') {
-        return (b.stt || 0) - (a.stt || 0); // Mới thêm gần đây (#N -> #1)
+        return (b.stt || 0) - (a.stt || 0);
       }
       if (filters.sortBy === 'rating') {
         return (b.rating || 0) - (a.rating || 0);
