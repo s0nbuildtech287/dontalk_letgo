@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   BookHeart, 
   CheckCircle2, 
@@ -10,9 +10,22 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '../context/StoreContext';
 import { PlaceCard } from './PlaceCard';
+import { Pagination } from './Pagination';
+
+const ITEMS_PER_PAGE = 9;
 
 export function JournalView() {
   const { visitedPlaces, setActiveTab } = useAppStore();
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [visitedPlaces.length]);
+
+  const totalPages = Math.ceil(visitedPlaces.length / ITEMS_PER_PAGE) || 1;
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (validCurrentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedVisitedPlaces = visitedPlaces.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   return (
     <div className="space-y-8 pb-12">
@@ -59,11 +72,21 @@ export function JournalView() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {visitedPlaces.map(place => (
-            <PlaceCard key={place.id} place={place} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {paginatedVisitedPlaces.map(place => (
+              <PlaceCard key={place.id} place={place} />
+            ))}
+          </div>
+
+          <Pagination
+            currentPage={validCurrentPage}
+            totalPages={totalPages}
+            totalItems={visitedPlaces.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
+        </>
       )}
     </div>
   );

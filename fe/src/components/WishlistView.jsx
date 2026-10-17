@@ -1,13 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppStore } from '../context/StoreContext';
 import { FilterBar } from './FilterBar';
 import { PlaceCard } from './PlaceCard';
 import { KanbanBoard } from './KanbanBoard';
 import { FullMapView } from './FullMapView';
+import { Pagination } from './Pagination';
 import { SearchX, Plus } from 'lucide-react';
+
+const ITEMS_PER_PAGE = 9; // 3 dòng x 3 cột = 9 địa điểm / trang
 
 export function WishlistView() {
   const { filteredPlaces, viewMode, setIsQuickAddOpen } = useAppStore();
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Tự động về trang 1 khi danh sách thay đổi (lọc, tìm kiếm)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredPlaces.length]);
+
+  const totalPages = Math.ceil(filteredPlaces.length / ITEMS_PER_PAGE) || 1;
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (validCurrentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedPlaces = filteredPlaces.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   return (
     <div className="space-y-6 pb-12">
@@ -38,11 +52,23 @@ export function WishlistView() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
-              {filteredPlaces.map(place => (
-                <PlaceCard key={place.id} place={place} />
-              ))}
-            </div>
+            <>
+              {/* 3x3 Grid Layout */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
+                {paginatedPlaces.map(place => (
+                  <PlaceCard key={place.id} place={place} />
+                ))}
+              </div>
+
+              {/* Pagination Controls */}
+              <Pagination
+                currentPage={validCurrentPage}
+                totalPages={totalPages}
+                totalItems={filteredPlaces.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
+            </>
           )}
         </>
       )}
