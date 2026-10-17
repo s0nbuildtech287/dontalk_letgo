@@ -4,10 +4,22 @@ import { INITIAL_PLACES, INITIAL_GROUP_MEMBERS } from '../data/initialPlaces.js'
 const STORAGE_KEY_PLACES = 'dithoi_places_v1';
 const STORAGE_KEY_THEME = 'dithoi_theme_v1';
 const STORAGE_KEY_PLANS = 'dithoi_plans_v1';
+const STORAGE_KEY_USER = 'letgoo_user_v1';
 
 const StoreContext = createContext(null);
 
 export function StoreProvider({ children }) {
+  // Current logged in user (xu4ns0n, maihuong)
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_USER);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return null;
+  });
+
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
   // Theme state
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem(STORAGE_KEY_THEME) || 'light';
@@ -127,6 +139,79 @@ export function StoreProvider({ children }) {
     setActiveTab('home');
   };
 
+  const handleSetIsQuickAddOpen = (open) => {
+    if (open && !currentUser) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    setIsQuickAddOpen(open);
+  };
+
+  const handleSetEditingPlace = (place) => {
+    if (place && !currentUser) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    setEditingPlace(place);
+  };
+
+  const handleSetSchedulingPlace = (place) => {
+    if (place && !currentUser) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    setSchedulingPlace(place);
+  };
+
+  const checkAuth = (actionName = 'thao tác này') => {
+    if (!currentUser) {
+      setIsLoginModalOpen(true);
+      return false;
+    }
+    return true;
+  };
+
+  const login = (username, password) => {
+    const cleanUser = (username || '').trim().toLowerCase();
+    const cleanPass = (password || '').trim();
+
+    if ((cleanUser === 'xu4ns0n' || cleanUser === 'maihuong') && cleanPass === '123') {
+      const userData = cleanUser === 'xu4ns0n' ? {
+        username: 'xu4ns0n',
+        name: 'Xuân Sơn',
+        gender: 'male',
+        role: 'Captain',
+        avatarText: 'S',
+        avatarBg: 'from-amber-400 to-[#FF6B4A]'
+      } : {
+        username: 'maihuong',
+        name: 'Mai Hương',
+        gender: 'female',
+        role: 'Co-Pilot',
+        avatarText: 'H',
+        avatarBg: 'from-rose-400 to-[#FF6B4A]'
+      };
+
+      setCurrentUser(userData);
+      localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(userData));
+      setIsLoginModalOpen(false);
+      if (isLandingPage) {
+        setIsLandingPage(false);
+        window.location.hash = 'home';
+        setActiveTab('home');
+      }
+      return { success: true };
+    }
+    return { success: false, message: 'Tài khoản hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại!' };
+  };
+
+  const logout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem(STORAGE_KEY_USER);
+    setIsLandingPage(true);
+    window.location.hash = 'welcome';
+  };
+
   const openLanding = () => {
     setIsLandingPage(true);
     window.location.hash = 'welcome';
@@ -150,8 +235,10 @@ export function StoreProvider({ children }) {
     });
   };
 
-  // Place actions
+  // Place actions (Guarded by auth so guest changes are not saved)
   const addPlace = (placeData) => {
+    if (!checkAuth('thêm địa điểm')) return null;
+
     const newPlace = {
       id: "place-" + Date.now(),
       title: placeData.title || "Địa điểm mới",
@@ -177,10 +264,12 @@ export function StoreProvider({ children }) {
   };
 
   const updatePlace = (id, updates) => {
+    if (!checkAuth('cập nhật địa điểm')) return;
     setPlaces(prev => prev.map(p => (p.id === id ? { ...p, ...updates } : p)));
   };
 
   const deletePlace = (id) => {
+    if (!checkAuth('xóa địa điểm')) return;
     setPlaces(prev => prev.filter(p => p.id !== id));
     // Remove from week plans if exists
     setWeekPlans(prev => {
@@ -193,6 +282,7 @@ export function StoreProvider({ children }) {
   };
 
   const changeStatus = (id, newStatus, extraData = {}) => {
+    if (!checkAuth('thay đổi trạng thái')) return;
     setPlaces(prev => prev.map(p => {
       if (p.id === id) {
         const updated = { ...p, status: newStatus, ...extraData };
@@ -206,6 +296,7 @@ export function StoreProvider({ children }) {
   };
 
   const toggleVote = (id) => {
+    if (!checkAuth('bình chọn')) return;
     setPlaces(prev => prev.map(p => {
       if (p.id === id) {
         return { ...p, votes: (p.votes || 0) + 1 };
@@ -215,6 +306,7 @@ export function StoreProvider({ children }) {
   };
 
   const assignToPlan = (placeId, dayName) => {
+    if (!checkAuth('lên lịch trình')) return;
     setWeekPlans(prev => {
       const dayList = prev[dayName] || [];
       if (!dayList.includes(placeId)) {
@@ -226,6 +318,7 @@ export function StoreProvider({ children }) {
   };
 
   const removeFromPlan = (placeId, dayName) => {
+    if (!checkAuth('xóa khỏi lịch trình')) return;
     setWeekPlans(prev => {
       if (!prev[dayName]) return prev;
       return {
@@ -291,6 +384,12 @@ export function StoreProvider({ children }) {
     visitedPlaces,
     stats,
     weekPlans,
+    // Auth
+    currentUser,
+    isLoginModalOpen,
+    setIsLoginModalOpen,
+    login,
+    logout,
     isLandingPage,
     enterApp,
     openLanding,
@@ -312,13 +411,13 @@ export function StoreProvider({ children }) {
     removeFromPlan,
     // Modals
     isQuickAddOpen,
-    setIsQuickAddOpen,
+    setIsQuickAddOpen: handleSetIsQuickAddOpen,
     detailPlace,
     setDetailPlace,
     editingPlace,
-    setEditingPlace,
+    setEditingPlace: handleSetEditingPlace,
     schedulingPlace,
-    setSchedulingPlace
+    setSchedulingPlace: handleSetSchedulingPlace
   };
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

@@ -14,6 +14,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useAppStore } from '../context/StoreContext';
+import { LoginModal } from './LoginModal';
 
 export function Modals() {
   const { 
@@ -34,6 +35,7 @@ export function Modals() {
 
   return (
     <>
+      <LoginModal />
       {isQuickAddOpen && (
         <QuickAddModal onClose={() => setIsQuickAddOpen(false)} onAdd={addPlace} />
       )}

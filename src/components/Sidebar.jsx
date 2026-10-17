@@ -11,7 +11,9 @@ import {
   Moon, 
   MapPin, 
   Compass,
-  Footprints
+  Footprints,
+  LogOut,
+  LogIn
 } from 'lucide-react';
 import { useAppStore } from '../context/StoreContext';
 
@@ -24,7 +26,10 @@ export function Sidebar() {
     setIsQuickAddOpen,
     stats,
     overduePlaces,
-    openLanding
+    openLanding,
+    currentUser,
+    logout,
+    setIsLoginModalOpen
   } = useAppStore();
 
   const navItems = [
@@ -121,17 +126,37 @@ export function Sidebar() {
 
         {/* USER PROFILE CARD */}
         <div className="p-3 border-t border-[var(--color-border-subtle)]">
-          <div className="flex items-center gap-3 p-2 rounded-xl bg-[var(--color-bg-subtle)]">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-400 to-[#FF6B4A] flex items-center justify-center text-white font-bold text-xs ring-2 ring-white dark:ring-stone-800">
-              S
+          {currentUser ? (
+            <div className="flex items-center justify-between p-2 rounded-xl bg-[var(--color-bg-subtle)] gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className={`w-8 h-8 rounded-full bg-gradient-to-tr ${currentUser.avatarBg || 'from-amber-400 to-[#FF6B4A]'} flex items-center justify-center text-white font-bold text-xs ring-2 ring-white dark:ring-stone-800 shrink-0 shadow-sm`}>
+                  {currentUser.avatarText || 'U'}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-[var(--color-text-main)] truncate">{currentUser.name}</p>
+                  <p className="text-[10px] text-[var(--color-text-muted)] truncate">
+                    @{currentUser.username} • {currentUser.role}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={logout}
+                title="Đăng xuất / Chuyển tài khoản"
+                className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors shrink-0"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-[var(--color-text-main)] truncate">Xuân Sơn</p>
-              <p className="text-[10px] text-[var(--color-text-muted)] flex items-center gap-1">
-                <MapPin className="w-3 h-3 text-[#FF6B4A]" /> TP. Hồ Chí Minh
-              </p>
-            </div>
-          </div>
+          ) : (
+            <button
+              onClick={() => setIsLoginModalOpen(true)}
+              className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#FF6B4A]/10 to-amber-500/10 hover:from-[#FF6B4A]/20 hover:to-amber-500/20 text-[#FF6B4A] border border-[#FF6B4A]/25 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm active:scale-98"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>Đăng nhập để lưu</span>
+            </button>
+          )}
         </div>
       </aside>
 

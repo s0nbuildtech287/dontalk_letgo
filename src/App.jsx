@@ -10,10 +10,18 @@ import { GroupView } from './components/GroupView';
 import { JournalView } from './components/JournalView';
 import { Modals } from './components/Modals';
 import { LandingPage } from './components/LandingPage';
-import { Plus, Footprints, Sparkles } from 'lucide-react';
+import { Plus, Footprints, Sparkles, LogIn } from 'lucide-react';
 
 export function App() {
-  const { activeTab, places, setIsQuickAddOpen, isLandingPage, openLanding } = useAppStore();
+  const { 
+    activeTab, 
+    places, 
+    setIsQuickAddOpen, 
+    isLandingPage, 
+    openLanding, 
+    currentUser,
+    setIsLoginModalOpen 
+  } = useAppStore();
 
   if (isLandingPage) {
     return (
@@ -28,8 +36,10 @@ export function App() {
     switch (activeTab) {
       case 'home':
         return {
-          title: 'Xin chào Xuân Sơn 👋',
-          subtitle: 'Biến câu "bữa nào rảnh đi" thành hành trình thật!',
+          title: currentUser ? `Xin chào ${currentUser.name} 👋` : 'Chào mừng bạn đến với LetGoo 👋',
+          subtitle: currentUser 
+            ? 'Biến câu "bữa nào rảnh đi" thành hành trình thật!' 
+            : 'Khám phá quán hot & địa điểm vi vu cuối tuần (Đăng nhập để lưu lịch trình)',
           countText: `${places.length} điểm`
         };
       case 'wishlist':
@@ -88,12 +98,22 @@ export function App() {
               Let<span className="text-[#FF6B4A]">Goo</span>!
             </span>
           </div>
-          <button 
-            onClick={() => setIsQuickAddOpen(true)}
-            className="p-2 rounded-xl bg-[var(--color-primary)] text-white shadow-sm active:scale-95 transition-transform"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            {!currentUser && (
+              <button
+                onClick={() => setIsLoginModalOpen(true)}
+                className="px-3 py-1.5 rounded-xl border border-[#FF6B4A]/30 text-[#FF6B4A] hover:bg-[#FFEBE6] text-xs font-bold transition-colors"
+              >
+                Đăng nhập
+              </button>
+            )}
+            <button 
+              onClick={() => setIsQuickAddOpen(true)}
+              className="p-2 rounded-xl bg-[var(--color-primary)] text-white shadow-sm active:scale-95 transition-transform"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Top Header */}
@@ -122,6 +142,16 @@ export function App() {
               <Sparkles className="w-3.5 h-3.5 text-amber-500" />
               <span>Trang giới thiệu</span>
             </button>
+
+            {!currentUser && (
+              <button
+                onClick={() => setIsLoginModalOpen(true)}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-stone-800 border border-[#FF6B4A]/30 text-[#FF6B4A] hover:bg-[#FFEBE6] dark:hover:bg-[#3D221B] text-xs font-bold shadow-sm hover:shadow transition-all"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>Đăng nhập</span>
+              </button>
+            )}
 
             <button 
               onClick={() => setIsQuickAddOpen(true)}
