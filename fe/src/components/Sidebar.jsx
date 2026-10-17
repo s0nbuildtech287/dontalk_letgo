@@ -34,7 +34,7 @@ export function Sidebar() {
 
   const navItems = [
     { id: 'home', label: 'Trang chủ', icon: Home, badge: overduePlaces.length > 0 ? `${overduePlaces.length} chờ` : null, badgeColor: 'bg-amber-500' },
-    { id: 'wishlist', label: 'Wishlist Quán', icon: Bookmark, badge: stats.want > 0 ? stats.want : null },
+    { id: 'wishlist', label: 'Wishlist', icon: Bookmark, badge: stats.want > 0 ? stats.want : null },
     { id: 'planner', label: 'Kế hoạch tuần', icon: CalendarDays, badge: stats.scheduled > 0 ? stats.scheduled : null, badgeColor: 'bg-blue-500' },
     { id: 'explore', label: 'Khám phá & AI', icon: Sparkles, highlight: true },
     { id: 'group', label: 'Nhóm đi chung', icon: Users, badge: 'Hot' },
@@ -81,7 +81,7 @@ export function Sidebar() {
             className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#FF8C69] hover:from-[#E85736] hover:to-[#FF6B4A] text-white font-bold text-xs shadow-md shadow-[#FF6B4A]/25 hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>Thêm quán mới</span>
+            <span>Thêm địa điểm mới</span>
           </button>
         </div>
 

@@ -146,7 +146,7 @@ export function RightPanel() {
         ></div>
 
         <p className="text-[11px] text-[var(--color-text-muted)] mt-2 px-1 text-center">
-          Ghim <strong className="text-[var(--color-text-main)]">{places.length}</strong> toạ độ quán yêu thích
+          Ghim <strong className="text-[var(--color-text-main)]">{places.length}</strong> toạ độ địa điểm yêu thích
         </p>
       </div>
 
@@ -167,12 +167,12 @@ export function RightPanel() {
 
         {plannedEntries.length === 0 ? (
           <div className="text-center py-6 px-2">
-            <p className="text-xs text-[var(--color-text-muted)]">Chưa có quán nào được lên lịch cho tuần này.</p>
+            <p className="text-xs text-[var(--color-text-muted)]">Chưa có địa điểm nào được lên lịch cho tuần này.</p>
             <button 
               onClick={() => setActiveTab('wishlist')}
               className="mt-2 text-xs font-bold text-[#FF6B4A] hover:underline"
             >
-              Chọn quán lên lịch ngay
+              Chọn địa điểm lên lịch ngay
             </button>
           </div>
         ) : (

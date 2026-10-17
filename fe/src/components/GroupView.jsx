@@ -57,7 +57,7 @@ export function GroupView() {
               className="px-4 py-2.5 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-xs font-bold shadow-md shadow-[#FF6B4A]/25 transition-all flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              <span>Thêm quán cho nhóm</span>
+              <span>Thêm địa điểm cho nhóm</span>
             </button>
           </div>
         </div>
@@ -92,22 +92,22 @@ export function GroupView() {
             </h3>
           </div>
           <span className="text-xs text-[var(--color-text-muted)]">
-            Bấm nút tim để nâng thứ hạng quán
+            Bấm nút tim để nâng thứ hạng địa điểm
           </span>
         </div>
 
         {topVotedPlaces.length === 0 ? (
           <div className="p-10 rounded-3xl bg-[var(--color-bg-surface)] border-2 border-dashed border-[var(--color-border)] text-center">
             <Heart className="w-10 h-10 text-[var(--color-text-muted)] mx-auto mb-3 opacity-30" />
-            <h4 className="font-extrabold text-sm text-[var(--color-text-main)]">Chưa có quán nào để bình chọn</h4>
+            <h4 className="font-extrabold text-sm text-[var(--color-text-main)]">Chưa có địa điểm nào để bình chọn</h4>
             <p className="text-xs text-[var(--color-text-muted)] mt-1 max-w-sm mx-auto">
-              Hãy thêm những quán ăn, cafe mà bạn muốn rủ nhóm cùng đi để mọi người cùng thả tim bình chọn!
+              Hãy thêm những địa điểm ăn chơi, cafe mà bạn muốn rủ nhóm cùng đi để mọi người cùng thả tim bình chọn!
             </p>
             <button
               onClick={() => setIsQuickAddOpen(true)}
               className="mt-4 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-xs font-bold shadow-md shadow-[#FF6B4A]/25"
             >
-              Thêm quán đề xuất ngay
+              Thêm địa điểm đề xuất ngay
             </button>
           </div>
         ) : (

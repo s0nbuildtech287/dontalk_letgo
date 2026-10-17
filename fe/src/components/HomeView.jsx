@@ -35,7 +35,7 @@ export function HomeView() {
               </div>
               <div>
                 <h2 className="text-base sm:text-lg font-black text-[var(--color-text-main)] flex items-center gap-2">
-                  <span>Cảnh báo: Bạn đang ngâm {overduePlaces.length} quán quá 14 ngày!</span>
+                  <span>Cảnh báo: Bạn đang ngâm {overduePlaces.length} địa điểm quá 14 ngày!</span>
                 </h2>
                 <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
                   Đừng để câu "hôm nào rảnh đi" trôi vào dĩ vãng. Lên lịch chốt kèo tuần này thôi!
@@ -47,7 +47,7 @@ export function HomeView() {
               onClick={() => setActiveTab('wishlist')}
               className="self-start sm:self-auto px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 shrink-0"
             >
-              <span>Xem tất cả quán chờ</span>
+              <span>Xem tất cả địa điểm chờ</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -124,7 +124,7 @@ export function HomeView() {
               Gợi ý điểm hẹn tuần này ✨
             </h3>
             <p className="text-xs text-[var(--color-text-muted)]">
-              Những quán ăn ngon, cafe đẹp sẵn sàng cho ngày nghỉ
+              Những địa điểm ăn uống, vui chơi sẵn sàng cho ngày nghỉ
             </p>
           </div>
 
@@ -146,7 +146,7 @@ export function HomeView() {
               Chưa có địa điểm nào trong danh sách
             </h4>
             <p className="text-xs text-[var(--color-text-muted)] max-w-sm mx-auto mt-1 mb-4">
-              Bắt đầu hành trình bằng cách thêm quán ăn ngon, tiệm cà phê hoặc địa điểm bạn muốn đi cuối tuần này!
+              Bắt đầu hành trình bằng cách thêm địa điểm ăn uống, vui chơi hoặc du lịch bạn muốn đi cuối tuần này!
             </p>
             <button
               onClick={() => setIsQuickAddOpen(true)}

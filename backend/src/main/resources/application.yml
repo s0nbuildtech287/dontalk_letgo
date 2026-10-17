@@ -26,7 +26,7 @@ google:
   drive:
     service-accounts-dir: ${SERVICE_ACCOUNTS_DIR:C:/Users/XUAN SON/Desktop/Xuan Son Version/DontTalk_LetGoo/dontalk_letgo/serviceAccounts}
     primary-account: ${PRIMARY_SERVICE_ACCOUNT:acc1.json}
-    folder-id: ${GOOGLE_DRIVE_FOLDER_ID:}
+    folder-id: ${GOOGLE_DRIVE_FOLDER_ID:1XemSItg_hJnT1D5ZLA0v3JowNR1MANjT}
 
 springdoc:
   api-docs:

@@ -8,3 +8,5 @@ serviceAccounts/
 .DS_Store
 *.log
 .env
+backend/uploads/
+uploads/

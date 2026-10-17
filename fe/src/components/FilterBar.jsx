@@ -60,7 +60,7 @@ export function FilterBar({ showViewMode = true }) {
             type="text"
             value={filters.search}
             onChange={(e) => setFilter('search', e.target.value)}
-            placeholder="Tìm quán, quận, món ăn, hashtag (#viewdep, #chill)..."
+            placeholder="Tìm địa điểm, quận, món ăn, hoạt động, hashtag (#viewdep, #chill)..."
             className="w-full bg-[var(--color-bg-surface)] text-[var(--color-text-main)] text-xs pl-10 pr-9 py-2.5 rounded-xl border border-[var(--color-border)] focus:border-[var(--color-primary)] focus:outline-none transition-colors shadow-sm"
           />
           {filters.search && (

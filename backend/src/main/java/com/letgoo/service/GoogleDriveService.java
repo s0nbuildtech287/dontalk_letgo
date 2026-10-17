@@ -104,6 +104,7 @@ public class GoogleDriveService {
                 );
 
                 File uploadedFile = driveService.files().create(fileMetadata, mediaContent)
+                        .setSupportsAllDrives(true)
                         .setFields("id, name, webViewLink, webContentLink")
                         .execute();
 
@@ -114,7 +115,9 @@ public class GoogleDriveService {
                     Permission permission = new Permission()
                             .setType("anyone")
                             .setRole("reader");
-                    driveService.permissions().create(fileId, permission).execute();
+                    driveService.permissions().create(fileId, permission)
+                            .setSupportsAllDrives(true)
+                            .execute();
                 } catch (Exception permEx) {
                     log.warn("Could not set public permission on Drive file {}: {}", fileId, permEx.getMessage());
                 }
@@ -134,20 +137,32 @@ public class GoogleDriveService {
                         .build();
 
             } catch (Exception e) {
-                log.error("Google Drive API error during file upload: {}", e.getMessage(), e);
-                throw new IOException("Lỗi upload lên Google Drive: " + e.getMessage(), e);
+                log.warn("Google Drive upload could not complete ({}), saving locally to /uploads...", e.getMessage());
+                return saveToLocalUploads(file, originalFilename);
             }
         } else {
-            // Local fallback simulation if service account credentials are unavailable
-            String fileId = "local-" + UUID.randomUUID();
-            String mockUrl = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80";
-            return UploadResponse.builder()
-                    .fileId(fileId)
-                    .fileName(originalFilename)
-                    .directUrl(mockUrl)
-                    .webViewUrl(mockUrl)
-                    .fileSize(file.getSize())
-                    .build();
+            return saveToLocalUploads(file, originalFilename);
         }
+    }
+
+    private UploadResponse saveToLocalUploads(MultipartFile file, String originalFilename) throws IOException {
+        Path uploadDir = Paths.get("uploads").toAbsolutePath().normalize();
+        if (!Files.exists(uploadDir)) {
+            Files.createDirectories(uploadDir);
+        }
+        String safeName = UUID.randomUUID() + "_" + originalFilename.replaceAll("[^a-zA-Z0-9.-]", "_");
+        Path targetPath = uploadDir.resolve(safeName);
+        file.transferTo(targetPath);
+
+        String localUrl = "http://localhost:8080/uploads/" + safeName;
+        log.info("Saved image to local server at: {}", targetPath);
+
+        return UploadResponse.builder()
+                .fileId("local-" + safeName)
+                .fileName(originalFilename)
+                .directUrl(localUrl)
+                .webViewUrl(localUrl)
+                .fileSize(file.getSize())
+                .build();
     }
 }

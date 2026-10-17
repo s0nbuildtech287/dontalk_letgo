@@ -20,6 +20,13 @@ public class CorsConfig {
                         .allowCredentials(true)
                         .maxAge(3600);
             }
+
+            @Override
+            public void addResourceHandlers(org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry registry) {
+                java.nio.file.Path uploadDir = java.nio.file.Paths.get("uploads").toAbsolutePath().normalize();
+                registry.addResourceHandler("/uploads/**")
+                        .addResourceLocations("file:" + uploadDir.toString().replace("\\", "/") + "/");
+            }
         };
     }
 }

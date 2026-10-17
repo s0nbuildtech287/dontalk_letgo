@@ -43,7 +43,7 @@ export function JournalView() {
               onClick={() => setActiveTab('wishlist')}
               className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/25 transition-all"
             >
-              Chọn quán đi ngay hôm nay
+              Chọn địa điểm đi ngay hôm nay
             </button>
           )}
         </div>
@@ -55,7 +55,7 @@ export function JournalView() {
           <BookHeart className="w-12 h-12 text-[var(--color-text-muted)] mx-auto mb-3 opacity-40" />
           <h3 className="font-extrabold text-sm text-[var(--color-text-main)]">Chưa có chuyến đi nào được hoàn thành</h3>
           <p className="text-xs text-[var(--color-text-muted)] mt-1 max-w-sm mx-auto">
-            Sau khi đi chơi về, hãy bấm nút <strong>"Đã đi rồi"</strong> trên mỗi quán để lưu vào nhật ký này nhé!
+            Sau khi đi chơi về, hãy bấm nút <strong>"Đã đi rồi"</strong> trên mỗi địa điểm để lưu vào nhật ký này nhé!
           </p>
         </div>
       ) : (

@@ -261,7 +261,7 @@ export function AIPlanner() {
                     className="self-end sm:self-auto px-3.5 py-1.5 rounded-xl bg-[var(--color-bg-surface)] hover:bg-[var(--color-primary)] hover:text-white text-xs font-bold text-[var(--color-text-main)] border border-[var(--color-border)] shadow-sm transition-all flex items-center gap-1.5 shrink-0"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>Lưu quán này</span>
+                    <span>Lưu địa điểm này</span>
                   </button>
                 </div>
               );
@@ -277,7 +277,7 @@ export function AIPlanner() {
             Địa điểm đang thịnh hành 🔥
           </h3>
           <p className="text-xs text-[var(--color-text-muted)] mb-4">
-            Những quán được các nhóm bạn lên lịch đi nhiều nhất tuần này
+            Những địa điểm được các nhóm bạn lên lịch đi nhiều nhất tuần này
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

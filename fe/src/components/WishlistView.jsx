@@ -28,13 +28,13 @@ export function WishlistView() {
                 Không tìm thấy địa điểm phù hợp
               </h3>
               <p className="text-xs text-[var(--color-text-muted)] mt-1 max-w-sm mx-auto">
-                Thử thay đổi từ khóa tìm kiếm hoặc bấm nút bên dưới để thêm quán mới.
+                Thử thay đổi từ khóa tìm kiếm hoặc bấm nút bên dưới để thêm địa điểm mới.
               </p>
               <button 
                 onClick={() => setIsQuickAddOpen(true)}
                 className="mt-4 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-xs font-bold shadow-md shadow-[#FF6B4A]/25"
               >
-                Thêm quán này ngay
+                Thêm địa điểm ngay
               </button>
             </div>
           ) : (

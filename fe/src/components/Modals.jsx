@@ -327,7 +327,7 @@ function QuickAddModal({ onClose, onAdd }) {
             </div>
             <div>
               <h3 className="font-extrabold text-base text-[var(--color-text-main)]">
-                Thêm Quán Mới Vào Wishlist
+                Thêm Địa Điểm Mới Vào Wishlist
               </h3>
               <p className="text-[11px] text-[var(--color-text-muted)]">
                 Lưu nhanh từ TikTok, Facebook hoặc đề xuất bạn bè
@@ -340,17 +340,17 @@ function QuickAddModal({ onClose, onAdd }) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1">
-          {/* Tên quán */}
+          {/* Tên địa điểm */}
           <div>
             <label className="text-xs font-bold text-[var(--color-text-main)] block mb-1">
-              Tên quán / Địa điểm <span className="text-red-500">*</span>
+              Tên địa điểm <span className="text-red-500">*</span>
             </label>
             <input 
               type="text" 
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ví dụ: Bánh Mì Chảo Cô Lệ, Rang Rang Coffee..."
+              placeholder="Ví dụ: Rang Rang Coffee, Bảo Tàng Mỹ Thuật, Cắm trại Trị An..."
               className="w-full bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] text-xs px-3.5 py-2.5 rounded-xl border border-[var(--color-border)] focus:border-[#FF6B4A] focus:outline-none"
             />
           </div>
@@ -453,13 +453,13 @@ function QuickAddModal({ onClose, onAdd }) {
           {/* Ghi chú */}
           <div>
             <label className="text-xs font-bold text-[var(--color-text-main)] block mb-1">
-              Ghi chú / Món ngon nên thử
+              Ghi chú / Món ngon, điểm nổi bật
             </label>
             <textarea 
               rows="2"
               value={reviewNote}
               onChange={(e) => setReviewNote(e.target.value)}
-              placeholder="Ví dụ: Bắt buộc thử bánh mì chảo đặc biệt + phô mai, đi sớm tránh đông..."
+              placeholder="Ví dụ: Bắt buộc thử bánh mì chảo, view ngắm hoàng hôn cực đẹp, đi sớm..."
               className="w-full bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] text-xs px-3.5 py-2 rounded-xl border border-[var(--color-border)] focus:border-[#FF6B4A] focus:outline-none"
             ></textarea>
           </div>
@@ -641,7 +641,7 @@ function ScheduleModal({ place, onClose, onAssign }) {
         </div>
 
         <p className="text-xs text-[var(--color-text-muted)] mb-3">
-          Chọn thứ trong tuần bạn muốn ghé quán:
+          Chọn thứ trong tuần bạn muốn ghé:
         </p>
 
         <div className="space-y-1.5">
@@ -715,7 +715,7 @@ function EditModal({ place, onClose, onUpdate }) {
 
         <form onSubmit={handleSave} className="space-y-3.5 overflow-y-auto flex-1 pr-1">
           <div>
-            <label className="text-xs font-bold text-[var(--color-text-main)] block mb-1">Tên quán</label>
+            <label className="text-xs font-bold text-[var(--color-text-main)] block mb-1">Tên địa điểm</label>
             <input 
               type="text" 
               required

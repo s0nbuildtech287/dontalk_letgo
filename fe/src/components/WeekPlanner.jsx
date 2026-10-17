@@ -168,7 +168,7 @@ export function WeekPlanner() {
               <Calendar className="w-10 h-10 text-[var(--color-text-muted)] mx-auto mb-2 opacity-50" />
               <p className="text-xs font-bold text-[var(--color-text-main)]">Hôm nay đang trống lịch!</p>
               <p className="text-xs text-[var(--color-text-muted)] mt-1 max-w-sm mx-auto">
-                Chọn một quán từ danh sách bên dưới hoặc thêm quán mới để cùng bạn bè vi vu nhé.
+                Chọn một địa điểm từ danh sách bên dưới hoặc thêm địa điểm mới để cùng bạn bè vi vu nhé.
               </p>
             </div>
           ) : (

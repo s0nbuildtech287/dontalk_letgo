@@ -39,7 +39,7 @@ export function App() {
           title: currentUser ? `Xin chào ${currentUser.name} 👋` : 'Chào mừng bạn đến với LetGoo 👋',
           subtitle: currentUser 
             ? 'Biến câu "bữa nào rảnh đi" thành hành trình thật!' 
-            : 'Khám phá quán hot & địa điểm vi vu cuối tuần (Đăng nhập để lưu lịch trình)',
+            : 'Khám phá địa điểm hot & vi vu cuối tuần (Đăng nhập để lưu lịch trình)',
           countText: `${places.length} điểm`
         };
       case 'wishlist':
@@ -57,7 +57,7 @@ export function App() {
       case 'explore':
         return {
           title: 'Khám phá & Trợ lý AI',
-          subtitle: 'Khám phá quán mới hoặc để AI thiết kế lịch trình tối ưu theo ngân sách.',
+          subtitle: 'Khám phá địa điểm mới hoặc để AI thiết kế lịch trình tối ưu theo ngân sách.',
           countText: 'AI Powered'
         };
       case 'group':
@@ -158,7 +158,7 @@ export function App() {
               className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-xs font-bold shadow-md shadow-[#FF6B4A]/20 transition-all hover:shadow"
             >
               <Plus className="w-4 h-4" />
-              <span>Thêm quán mới</span>
+              <span>Thêm địa điểm mới</span>
             </button>
           </div>
         </header>

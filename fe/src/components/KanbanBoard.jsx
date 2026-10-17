@@ -111,7 +111,7 @@ export function KanbanBoard() {
                 <button 
                   onClick={() => setIsQuickAddOpen(true)}
                   className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[#FF6B4A] hover:bg-[var(--color-bg-surface)] transition-colors"
-                  title="Thêm quán mới vào Wishlist"
+                  title="Thêm địa điểm mới vào Wishlist"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -122,7 +122,7 @@ export function KanbanBoard() {
             <div className="space-y-4 flex-1">
               {col.items.length === 0 ? (
                 <div className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-[var(--color-border)] rounded-2xl p-4 text-center">
-                  <p className="text-xs text-[var(--color-text-muted)]">Kéo thả quán vào đây</p>
+                  <p className="text-xs text-[var(--color-text-muted)]">Kéo thả địa điểm vào đây</p>
                 </div>
               ) : (
                 col.items.map(place => (
