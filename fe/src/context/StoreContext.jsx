@@ -120,11 +120,17 @@ export function StoreProvider({ children }) {
     api.places.getAll().then(data => {
       if (active && Array.isArray(data)) {
         setPlaces(data);
+        try {
+          localStorage.setItem(STORAGE_KEY_PLACES, JSON.stringify(data));
+        } catch (e) {}
       }
     });
     api.plans.getAll().then(data => {
       if (active && data && typeof data === 'object') {
         setWeekPlans(data);
+        try {
+          localStorage.setItem(STORAGE_KEY_PLANS, JSON.stringify(data));
+        } catch (e) {}
       }
     });
     return () => { active = false; };
@@ -311,13 +317,29 @@ export function StoreProvider({ children }) {
     setPlaces(prev => prev.map(p => {
       if (p.id === id) {
         const updated = { ...p, status: newStatus, ...extraData };
-        if (newStatus === 'visited' && !updated.visitedDate) {
-          updated.visitedDate = new Date().toISOString().split('T')[0];
+        if (newStatus === 'visited') {
+          updated.suggestedWeek = false;
+          updated.scheduledDate = null;
+          updated.scheduledDayName = null;
+          if (!updated.visitedDate) {
+            updated.visitedDate = new Date().toISOString().split('T')[0];
+          }
         }
         return updated;
       }
       return p;
     }));
+
+    if (newStatus === 'visited') {
+      setWeekPlans(prev => {
+        const nextPlans = { ...prev };
+        Object.keys(nextPlans).forEach(day => {
+          nextPlans[day] = (nextPlans[day] || []).filter(pid => pid !== id);
+        });
+        return nextPlans;
+      });
+    }
+
     api.places.changeStatus(id, { status: newStatus, ...extraData });
   };
 
@@ -359,16 +381,33 @@ export function StoreProvider({ children }) {
 
   // Computed values
   const filteredPlaces = useMemo(() => {
-    // Ensure every place has an accurate STT (1-based based on creation order)
-    const withStt = places.map((p, idx) => ({
-      ...p,
-      stt: p.stt || (idx + 1)
-    }));
+    // 1. Chỉ các địa điểm chưa đi (want hoặc scheduled) mới có STT ưu tiên (#1, #2, #3...)
+    // Khi 1 địa điểm đã đi, nó nhường vị trí STT cho các địa điểm còn lại trong Wishlist!
+    let unvisitedCounter = 0;
+    const withDynamicStt = places.map((p) => {
+      if (p.status !== 'visited') {
+        unvisitedCounter++;
+        return {
+          ...p,
+          stt: unvisitedCounter
+        };
+      }
+      return {
+        ...p,
+        stt: null
+      };
+    });
 
-    const result = withStt.filter(p => {
+    const result = withDynamicStt.filter(p => {
       if (filters.category !== 'all' && p.category !== filters.category) return false;
       if (filters.priceRange !== 'all' && p.priceRange !== filters.priceRange) return false;
-      if (filters.status !== 'all' && p.status !== filters.status) return false;
+      if (filters.status !== 'all') {
+        if (p.status !== filters.status) return false;
+      } else {
+        // Mặc định trong Wishlist: Không hiện các địa điểm đã đi ('visited')
+        // Những địa điểm đã đi sẽ chuyển hẳn sang mục "Kỷ niệm đã đi" (Journal)
+        if (p.status === 'visited') return false;
+      }
       if (filters.location !== 'all') {
         if (!p.location.toLowerCase().includes(filters.location.toLowerCase())) return false;
       }
@@ -385,7 +424,7 @@ export function StoreProvider({ children }) {
     // Sorting by user preference
     result.sort((a, b) => {
       if (filters.sortBy === 'priority') {
-        return (a.stt || 0) - (b.stt || 0); // Thêm trước ưu tiên đi trước (#1 -> #N)
+        return (a.stt || 9999) - (b.stt || 9999); // Thêm trước ưu tiên đi trước (#1 -> #N)
       }
       if (filters.sortBy === 'newest') {
         return (b.stt || 0) - (a.stt || 0); // Mới thêm gần đây (#N -> #1)
@@ -399,7 +438,7 @@ export function StoreProvider({ children }) {
       if (filters.sortBy === 'overdue') {
         return (b.savedDaysAgo || 0) - (a.savedDaysAgo || 0);
       }
-      return (a.stt || 0) - (b.stt || 0);
+      return (a.stt || 9999) - (b.stt || 9999);
     });
 
     return result;
@@ -410,7 +449,15 @@ export function StoreProvider({ children }) {
   }, [places]);
 
   const suggestedPlaces = useMemo(() => {
-    return places.filter(p => p.suggestedWeek || p.status === 'want').slice(0, 6);
+    let unvisitedCounter = 0;
+    return places
+      .filter(p => p.status !== 'visited')
+      .map(p => {
+        unvisitedCounter++;
+        return { ...p, stt: unvisitedCounter };
+      })
+      .filter(p => p.suggestedWeek || p.status === 'want')
+      .slice(0, 6);
   }, [places]);
 
   const scheduledPlaces = useMemo(() => {
@@ -418,7 +465,9 @@ export function StoreProvider({ children }) {
   }, [places]);
 
   const visitedPlaces = useMemo(() => {
-    return places.filter(p => p.status === 'visited');
+    return places
+      .filter(p => p.status === 'visited')
+      .map(p => ({ ...p, stt: null }));
   }, [places]);
 
   const stats = useMemo(() => {

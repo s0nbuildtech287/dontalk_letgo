@@ -77,14 +77,16 @@ export function PlaceCard({ place }) {
 
         {/* Top Floating Badges */}
         <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5 items-center z-10">
-          {/* STT / Thứ tự ưu tiên */}
-          <span 
-            className="px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wide bg-gradient-to-r from-[#FF6B4A] to-amber-500 text-white shadow-md flex items-center gap-1 backdrop-blur-md border border-white/20"
-            title={`Số thứ tự: #${place.stt || 1} • Món thêm trước, ưu tiên đi trước`}
-          >
-            <span>#{place.stt || 1}</span>
-            <span className="text-[9px] font-semibold opacity-90 hidden sm:inline">Ưu tiên</span>
-          </span>
+          {/* STT / Thứ tự ưu tiên (Chỉ hiện cho địa điểm chưa đi trong Wishlist) */}
+          {place.status !== 'visited' && place.stt && (
+            <span 
+              className="px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wide bg-gradient-to-r from-[#FF6B4A] to-amber-500 text-white shadow-md flex items-center gap-1 backdrop-blur-md border border-white/20"
+              title={`Số thứ tự: #${place.stt} • Món thêm trước, ưu tiên đi trước`}
+            >
+              <span>#{place.stt}</span>
+              <span className="text-[9px] font-semibold opacity-90 hidden sm:inline">Ưu tiên</span>
+            </span>
+          )}
 
           <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wide uppercase bg-black/60 text-white backdrop-blur-md">
             {place.categoryLabel || 'Ăn uống'}
@@ -128,13 +130,15 @@ export function PlaceCard({ place }) {
             </div>
           </div>
 
-          {/* Title with STT */}
+          {/* Title with STT only if not visited */}
           <h3 
             onClick={() => setDetailPlace(place)}
             className="font-bold text-sm text-[var(--color-text-main)] group-hover:text-[#FF6B4A] transition-colors line-clamp-1 cursor-pointer flex items-center gap-1.5"
-            title={`#${place.stt || 1}. ${place.title}`}
+            title={place.title}
           >
-            <span className="text-[#FF6B4A] font-black text-xs shrink-0">#{place.stt || 1}.</span>
+            {place.status !== 'visited' && place.stt && (
+              <span className="text-[#FF6B4A] font-black text-xs shrink-0">#{place.stt}.</span>
+            )}
             <span className="truncate">{place.title}</span>
           </h3>
 

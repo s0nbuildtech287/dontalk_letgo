@@ -590,15 +590,21 @@ function DetailModal({ place, onClose, onSchedule, onVisited, onDelete }) {
 
           <div className="absolute bottom-4 left-4 right-4">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#FF6B4A] to-amber-500 text-white shadow-sm border border-white/20">
-                STT #{place.stt || 1} • Ưu tiên
-              </span>
+              {place.status !== 'visited' && place.stt ? (
+                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#FF6B4A] to-amber-500 text-white shadow-sm border border-white/20">
+                  STT #{place.stt} • Ưu tiên
+                </span>
+              ) : (
+                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-600 text-white shadow-sm flex items-center gap-1">
+                  ✨ Kỷ niệm đã đi
+                </span>
+              )}
               <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/60 text-white backdrop-blur-md">
                 {place.categoryLabel}
               </span>
             </div>
             <h2 className="text-xl font-extrabold text-white">
-              #{place.stt || 1}. {place.title}
+              {place.status !== 'visited' && place.stt ? `#${place.stt}. ` : ''}{place.title}
             </h2>
             <p className="text-xs text-white/80 flex items-center gap-1 mt-0.5">
               <MapPin className="w-3.5 h-3.5 text-[#FF6B4A]" /> {place.location}
@@ -610,9 +616,15 @@ function DetailModal({ place, onClose, onSchedule, onVisited, onDelete }) {
         <div className="p-6 space-y-4 overflow-y-auto flex-1">
           <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border-subtle)] text-xs">
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded-md bg-[#FFEBE6] text-[#FF6B4A] dark:bg-[#3B221D] dark:text-[#FF7B5C] font-extrabold text-[11px]">
-                STT #{place.stt || 1}
-              </span>
+              {place.status !== 'visited' && place.stt ? (
+                <span className="px-2 py-0.5 rounded-md bg-[#FFEBE6] text-[#FF6B4A] dark:bg-[#3B221D] dark:text-[#FF7B5C] font-extrabold text-[11px]">
+                  STT #{place.stt}
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 font-extrabold text-[11px]">
+                  Đã đi {place.visitedDate ? `(${place.visitedDate})` : ''}
+                </span>
+              )}
               <div>
                 <span className="text-[var(--color-text-muted)]">Khoảng giá: </span>
                 <strong className="text-[var(--color-text-main)]">{place.priceText || place.priceRange}</strong>

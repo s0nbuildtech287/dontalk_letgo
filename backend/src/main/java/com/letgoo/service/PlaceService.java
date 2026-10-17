@@ -26,9 +26,15 @@ public class PlaceService {
     public List<PlaceDto> getAllPlaces() {
         List<Place> places = placeRepository.findAllByOrderByCreatedAtAsc();
         List<PlaceDto> dtos = new java.util.ArrayList<>();
-        for (int i = 0; i < places.size(); i++) {
-            PlaceDto dto = PlaceDto.fromEntity(places.get(i));
-            dto.setStt(i + 1);
+        int unvisitedCount = 0;
+        for (Place place : places) {
+            PlaceDto dto = PlaceDto.fromEntity(place);
+            if (!"visited".equalsIgnoreCase(place.getStatus())) {
+                unvisitedCount++;
+                dto.setStt(unvisitedCount);
+            } else {
+                dto.setStt(null);
+            }
             dtos.add(dto);
         }
         return dtos;
@@ -39,11 +45,20 @@ public class PlaceService {
         Place place = placeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy địa điểm: " + id));
         PlaceDto dto = PlaceDto.fromEntity(place);
+        if ("visited".equalsIgnoreCase(place.getStatus())) {
+            dto.setStt(null);
+            return dto;
+        }
+
         List<Place> allPlaces = placeRepository.findAllByOrderByCreatedAtAsc();
-        for (int i = 0; i < allPlaces.size(); i++) {
-            if (allPlaces.get(i).getId().equals(id)) {
-                dto.setStt(i + 1);
-                break;
+        int count = 0;
+        for (Place p : allPlaces) {
+            if (!"visited".equalsIgnoreCase(p.getStatus())) {
+                count++;
+                if (p.getId().equals(id)) {
+                    dto.setStt(count);
+                    break;
+                }
             }
         }
         return dto;
@@ -117,6 +132,10 @@ public class PlaceService {
             if (scheduledDate != null) place.setScheduledDate(scheduledDate);
             if (scheduledDayName != null) place.setScheduledDayName(scheduledDayName);
         } else if ("visited".equals(newStatus)) {
+            place.setSuggestedWeek(false);
+            place.setScheduledDate(null);
+            place.setScheduledDayName(null);
+            weekPlanRepository.deleteByPlaceId(id);
             if (place.getVisitedDate() == null) {
                 place.setVisitedDate(LocalDate.now().toString());
             }

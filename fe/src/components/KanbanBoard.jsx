@@ -14,6 +14,7 @@ import { PlaceCard } from './PlaceCard';
 export function KanbanBoard() {
   const { 
     filteredPlaces, 
+    places,
     changeStatus, 
     setSchedulingPlace, 
     setIsQuickAddOpen 
@@ -44,13 +45,13 @@ export function KanbanBoard() {
     },
     {
       id: 'visited',
-      title: 'Đã đi (Chiến thắng)',
-      subtitle: 'Kỷ niệm & đánh giá thực tế',
+      title: 'Đã đi (Kỷ niệm)',
+      subtitle: 'Đã chuyển sang mục Kỷ niệm',
       icon: CheckCircle2,
       color: 'text-emerald-600 dark:text-emerald-400',
       bgColor: 'bg-emerald-500/10',
       borderColor: 'border-emerald-500/30',
-      items: filteredPlaces.filter(p => p.status === 'visited')
+      items: places.filter(p => p.status === 'visited')
     }
   ];
 

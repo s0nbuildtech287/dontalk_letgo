@@ -36,10 +36,10 @@ export function FilterBar({ showViewMode = true }) {
   ];
 
   const statuses = [
-    { id: 'all', label: 'Tất cả trạng thái' },
+    { id: 'all', label: 'Tất cả chưa đi' },
     { id: 'want', label: '🧡 Muốn đi' },
     { id: 'scheduled', label: '💙 Đã lên lịch' },
-    { id: 'visited', label: '💚 Đã đi' }
+    { id: 'visited', label: '💚 Đã đi (Kỷ niệm)' }
   ];
 
   const hasActiveFilter = 
