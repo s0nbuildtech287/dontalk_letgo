@@ -271,20 +271,22 @@ export function AIPlanner() {
       )}
 
       {/* GỢI Ý CỘNG ĐỒNG */}
-      <div>
-        <h3 className="text-lg font-black text-[var(--color-text-main)] mb-1">
-          Địa điểm đang thịnh hành 🔥
-        </h3>
-        <p className="text-xs text-[var(--color-text-muted)] mb-4">
-          Những quán được các nhóm bạn lên lịch đi nhiều nhất tuần này
-        </p>
+      {places.length > 0 && (
+        <div>
+          <h3 className="text-lg font-black text-[var(--color-text-main)] mb-1">
+            Địa điểm đang thịnh hành 🔥
+          </h3>
+          <p className="text-xs text-[var(--color-text-muted)] mb-4">
+            Những quán được các nhóm bạn lên lịch đi nhiều nhất tuần này
+          </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {places.slice(0, 3).map(p => (
-            <PlaceCard key={p.id} place={p} />
-          ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {places.slice(0, 3).map(p => (
+              <PlaceCard key={p.id} place={p} />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

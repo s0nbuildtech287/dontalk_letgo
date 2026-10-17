@@ -74,6 +74,8 @@ export function RightPanel() {
       try {
         map.fitBounds(bounds, { padding: [20, 20], maxZoom: 14 });
       } catch (e) {}
+    } else {
+      map.setView([10.7769, 106.7009], 12);
     }
 
     // Leaflet needs resize trigger when parent container renders

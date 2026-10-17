@@ -137,11 +137,32 @@ export function HomeView() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {suggestedPlaces.map(p => (
-            <PlaceCard key={p.id} place={p} />
-          ))}
-        </div>
+        {suggestedPlaces.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-[var(--color-border)] p-10 text-center bg-[var(--color-bg-surface)]/50">
+            <div className="w-16 h-16 rounded-3xl bg-[#FFEBE6] dark:bg-[#3D221B] text-[#FF6B4A] flex items-center justify-center mx-auto mb-3 shadow-inner">
+              <Sparkles className="w-8 h-8" />
+            </div>
+            <h4 className="font-black text-base text-[var(--color-text-main)]">
+              Chưa có địa điểm nào trong danh sách
+            </h4>
+            <p className="text-xs text-[var(--color-text-muted)] max-w-sm mx-auto mt-1 mb-4">
+              Bắt đầu hành trình bằng cách thêm quán ăn ngon, tiệm cà phê hoặc địa điểm bạn muốn đi cuối tuần này!
+            </p>
+            <button
+              onClick={() => setIsQuickAddOpen(true)}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#FF8C69] hover:from-[#E85736] hover:to-[#FF6B4A] text-white text-xs font-bold shadow-md shadow-[#FF6B4A]/25 transition-all inline-flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Thêm địa điểm đầu tiên</span>
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {suggestedPlaces.map(p => (
+              <PlaceCard key={p.id} place={p} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

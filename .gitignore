@@ -1,5 +1,10 @@
 node_modules/
 dist/
+fe/node_modules/
+fe/dist/
+backend/build/
+backend/.gradle/
+serviceAccounts/
 .DS_Store
 *.log
 .env

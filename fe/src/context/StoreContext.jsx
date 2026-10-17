@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { INITIAL_PLACES, INITIAL_GROUP_MEMBERS } from '../data/initialPlaces.js';
+import { api } from '../api/client.js';
 
-const STORAGE_KEY_PLACES = 'dithoi_places_v1';
-const STORAGE_KEY_THEME = 'dithoi_theme_v1';
-const STORAGE_KEY_PLANS = 'dithoi_plans_v1';
-const STORAGE_KEY_USER = 'letgoo_user_v1';
+const STORAGE_KEY_PLACES = 'letgoo_places_v2';
+const STORAGE_KEY_THEME = 'letgoo_theme_v2';
+const STORAGE_KEY_PLANS = 'letgoo_plans_v2';
+const STORAGE_KEY_USER = 'letgoo_user_v2';
 
 const StoreContext = createContext(null);
 
@@ -25,7 +26,7 @@ export function StoreProvider({ children }) {
     return localStorage.getItem(STORAGE_KEY_THEME) || 'light';
   });
 
-  // Places state
+  // Places state (Empty by default so user can test adding fresh data)
   const [places, setPlaces] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_PLACES);
@@ -33,23 +34,23 @@ export function StoreProvider({ children }) {
     } catch (e) {
       console.warn("Could not load from localStorage", e);
     }
-    return INITIAL_PLACES;
+    return [];
   });
 
-  // Week plans
+  // Week plans (Empty by default)
   const [weekPlans, setWeekPlans] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_PLANS);
       if (saved) return JSON.parse(saved);
     } catch (e) {}
     return {
-      "Thứ Hai": ["place-7"],
+      "Thứ Hai": [],
       "Thứ Ba": [],
       "Thứ Tư": [],
       "Thứ Năm": [],
-      "Thứ Sáu": ["place-9"],
-      "Thứ Bảy": ["place-11"],
-      "Chủ Nhật": ["place-2"]
+      "Thứ Sáu": [],
+      "Thứ Bảy": [],
+      "Chủ Nhật": []
     };
   });
 
@@ -111,6 +112,22 @@ export function StoreProvider({ children }) {
       console.error("Failed to save plans to localStorage", e);
     }
   }, [weekPlans]);
+
+  // Load initial data from PostgreSQL backend on mount
+  useEffect(() => {
+    let active = true;
+    api.places.getAll().then(data => {
+      if (active && Array.isArray(data)) {
+        setPlaces(data);
+      }
+    });
+    api.plans.getAll().then(data => {
+      if (active && data && typeof data === 'object') {
+        setWeekPlans(data);
+      }
+    });
+    return () => { active = false; };
+  }, []);
 
   // Sync hash with activeTab and landing page
   useEffect(() => {
@@ -235,7 +252,7 @@ export function StoreProvider({ children }) {
     });
   };
 
-  // Place actions (Guarded by auth so guest changes are not saved)
+  // Place actions (Guarded by auth and synced with PostgreSQL)
   const addPlace = (placeData) => {
     if (!checkAuth('thêm địa điểm')) return null;
 
@@ -260,12 +277,15 @@ export function StoreProvider({ children }) {
       scheduledDate: placeData.scheduledDate || null
     };
     setPlaces(prev => [newPlace, ...prev]);
+    // Persist to PostgreSQL backend
+    api.places.create(newPlace);
     return newPlace;
   };
 
   const updatePlace = (id, updates) => {
     if (!checkAuth('cập nhật địa điểm')) return;
     setPlaces(prev => prev.map(p => (p.id === id ? { ...p, ...updates } : p)));
+    api.places.update(id, updates);
   };
 
   const deletePlace = (id) => {
@@ -279,6 +299,7 @@ export function StoreProvider({ children }) {
       });
       return updated;
     });
+    api.places.delete(id);
   };
 
   const changeStatus = (id, newStatus, extraData = {}) => {
@@ -293,6 +314,7 @@ export function StoreProvider({ children }) {
       }
       return p;
     }));
+    api.places.changeStatus(id, { status: newStatus, ...extraData });
   };
 
   const toggleVote = (id) => {
@@ -303,6 +325,7 @@ export function StoreProvider({ children }) {
       }
       return p;
     }));
+    api.places.vote(id);
   };
 
   const assignToPlan = (placeId, dayName) => {
@@ -315,6 +338,7 @@ export function StoreProvider({ children }) {
       return prev;
     });
     changeStatus(placeId, 'scheduled', { scheduledDayName: dayName });
+    api.plans.assign(placeId, dayName);
   };
 
   const removeFromPlan = (placeId, dayName) => {
@@ -326,6 +350,7 @@ export function StoreProvider({ children }) {
         [dayName]: prev[dayName].filter(id => id !== placeId)
       };
     });
+    api.plans.remove(placeId, dayName);
   };
 
   // Computed values

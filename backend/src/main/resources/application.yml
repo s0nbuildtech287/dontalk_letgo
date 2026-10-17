@@ -1,0 +1,35 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: letgoo-backend
+  datasource:
+    url: jdbc:postgresql://localhost:5432/letgoo
+    username: postgres
+    password: ${DB_PASSWORD:123456}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 30MB
+
+google:
+  drive:
+    service-accounts-dir: ${SERVICE_ACCOUNTS_DIR:C:/Users/XUAN SON/Desktop/Xuan Son Version/DontTalk_LetGoo/dontalk_letgo/serviceAccounts}
+    primary-account: ${PRIMARY_SERVICE_ACCOUNT:acc1.json}
+    folder-id: ${GOOGLE_DRIVE_FOLDER_ID:}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html

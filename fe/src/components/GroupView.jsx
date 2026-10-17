@@ -96,11 +96,27 @@ export function GroupView() {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {topVotedPlaces.map(place => (
-            <PlaceCard key={place.id} place={place} />
-          ))}
-        </div>
+        {topVotedPlaces.length === 0 ? (
+          <div className="p-10 rounded-3xl bg-[var(--color-bg-surface)] border-2 border-dashed border-[var(--color-border)] text-center">
+            <Heart className="w-10 h-10 text-[var(--color-text-muted)] mx-auto mb-3 opacity-30" />
+            <h4 className="font-extrabold text-sm text-[var(--color-text-main)]">Chưa có quán nào để bình chọn</h4>
+            <p className="text-xs text-[var(--color-text-muted)] mt-1 max-w-sm mx-auto">
+              Hãy thêm những quán ăn, cafe mà bạn muốn rủ nhóm cùng đi để mọi người cùng thả tim bình chọn!
+            </p>
+            <button
+              onClick={() => setIsQuickAddOpen(true)}
+              className="mt-4 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-xs font-bold shadow-md shadow-[#FF6B4A]/25"
+            >
+              Thêm quán đề xuất ngay
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {topVotedPlaces.map(place => (
+              <PlaceCard key={place.id} place={place} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
