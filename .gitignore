@@ -8,5 +8,12 @@ serviceAccounts/
 .DS_Store
 *.log
 .env
+.env.*
+!.env.example
+fe/.env*
+!fe/.env.example
 backend/uploads/
 uploads/
+__pycache__/
+*.pyc
+*.pyo

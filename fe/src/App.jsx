@@ -56,9 +56,9 @@ export function App() {
         };
       case 'explore':
         return {
-          title: 'Khám phá & Trợ lý AI',
-          subtitle: 'Khám phá địa điểm mới hoặc để AI thiết kế lịch trình tối ưu theo ngân sách.',
-          countText: 'AI Powered'
+          title: 'Trợ lý AI & Chatbot',
+          subtitle: 'Trò chuyện cùng LetGoo AI, hỏi địa điểm ăn chơi và lên lịch trình linh hoạt.',
+          countText: 'Gemini AI'
         };
       case 'group':
         return {
