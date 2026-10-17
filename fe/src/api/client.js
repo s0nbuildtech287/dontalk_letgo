@@ -55,6 +55,43 @@ async function sheetRequest(payload = null) {
   }
 }
 
+function formatPlace(p) {
+  if (!p || typeof p !== 'object') return p;
+  let tags = [];
+  if (Array.isArray(p.tags)) {
+    tags = p.tags;
+  } else if (typeof p.tags === 'string') {
+    const trimmed = p.tags.trim();
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        tags = Array.isArray(parsed) ? parsed : [];
+      } catch {
+        tags = trimmed.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean);
+      }
+    } else if (trimmed) {
+      tags = trimmed.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean);
+    }
+  }
+
+  let mapCoords = p.mapCoords;
+  if (typeof mapCoords === 'string') {
+    try {
+      const parsed = JSON.parse(mapCoords);
+      if (Array.isArray(parsed) && parsed.length === 2) mapCoords = parsed;
+    } catch {
+      const parts = mapCoords.split(',').map(Number);
+      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) mapCoords = parts;
+    }
+  }
+
+  return {
+    ...p,
+    tags,
+    mapCoords: Array.isArray(mapCoords) && mapCoords.length === 2 ? mapCoords : [10.7769, 106.7009]
+  };
+}
+
 export const api = {
   auth: {
     login: async (username, password) => {
@@ -71,13 +108,13 @@ export const api = {
       // 1. Try local backend first
       const res = await request('/places');
       if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
-        return res.data;
+        return res.data.map(formatPlace);
       }
 
       // 2. Fallback to Google Sheets
       const sheetRes = await sheetRequest();
       if (sheetRes?.success && Array.isArray(sheetRes?.data?.places) && sheetRes.data.places.length > 0) {
-        return sheetRes.data.places;
+        return sheetRes.data.places.map(formatPlace);
       }
 
       return null;

@@ -13,6 +13,43 @@ const STORAGE_KEY_USER_PLANS = 'letgoo_user_plans_v2';
 const STORAGE_KEY_USER = 'letgoo_user_v2';
 const STORAGE_KEY_USER_PLAN_DETAILS = 'letgoo_user_plan_details_v2';
 
+export function normalizePlace(p) {
+  if (!p || typeof p !== 'object') return p;
+  let tags = [];
+  if (Array.isArray(p.tags)) {
+    tags = p.tags;
+  } else if (typeof p.tags === 'string') {
+    const trimmed = p.tags.trim();
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        tags = Array.isArray(parsed) ? parsed : [];
+      } catch {
+        tags = trimmed.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean);
+      }
+    } else if (trimmed) {
+      tags = trimmed.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean);
+    }
+  }
+
+  let mapCoords = p.mapCoords;
+  if (typeof mapCoords === 'string') {
+    try {
+      const parsed = JSON.parse(mapCoords);
+      if (Array.isArray(parsed) && parsed.length === 2) mapCoords = parsed;
+    } catch {
+      const parts = mapCoords.split(',').map(Number);
+      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) mapCoords = parts;
+    }
+  }
+
+  return {
+    ...p,
+    tags,
+    mapCoords: Array.isArray(mapCoords) && mapCoords.length === 2 ? mapCoords : [10.7769, 106.7009]
+  };
+}
+
 const StoreContext = createContext(null);
 
 export function StoreProvider({ children }) {
@@ -36,7 +73,10 @@ export function StoreProvider({ children }) {
   const [userPlaces, setUserPlaces] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_USER_PLACES);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed.map(normalizePlace);
+      }
     } catch (e) {
       console.warn("Could not load from localStorage", e);
     }
@@ -74,7 +114,8 @@ export function StoreProvider({ children }) {
   // If currentUser is logged in: show user's own data (empty initially so user adds their own)
   // If not logged in (!currentUser): show fallback preview (5 món + 5 địa điểm) so guests can view & experience
   const places = useMemo(() => {
-    return currentUser ? userPlaces : FALLBACK_PLACES;
+    const raw = currentUser ? userPlaces : FALLBACK_PLACES;
+    return Array.isArray(raw) ? raw.map(normalizePlace) : [];
   }, [currentUser, userPlaces]);
 
   const weekPlans = useMemo(() => {
@@ -157,9 +198,10 @@ export function StoreProvider({ children }) {
     let active = true;
     api.places.getAll().then(data => {
       if (active && Array.isArray(data)) {
-        setUserPlaces(data);
+        const normalized = data.map(normalizePlace);
+        setUserPlaces(normalized);
         try {
-          localStorage.setItem(STORAGE_KEY_USER_PLACES, JSON.stringify(data));
+          localStorage.setItem(STORAGE_KEY_USER_PLACES, JSON.stringify(normalized));
         } catch (e) {}
       }
     });
@@ -489,9 +531,9 @@ export function StoreProvider({ children }) {
       }
       if (filters.search.trim()) {
         const q = filters.search.toLowerCase().trim();
-        const inTitle = p.title.toLowerCase().includes(q);
-        const inLoc = p.location.toLowerCase().includes(q);
-        const inTags = p.tags && p.tags.some(t => t.toLowerCase().includes(q));
+        const inTitle = p.title && p.title.toLowerCase().includes(q);
+        const inLoc = p.location && p.location.toLowerCase().includes(q);
+        const inTags = Array.isArray(p.tags) && p.tags.some(t => typeof t === 'string' && t.toLowerCase().includes(q));
         if (!inTitle && !inLoc && !inTags) return false;
       }
       return true;

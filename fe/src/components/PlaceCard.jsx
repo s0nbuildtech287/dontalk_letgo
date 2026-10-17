@@ -149,15 +149,23 @@ export function PlaceCard({ place }) {
           </p>
 
           {/* Tags */}
-          {place.tags && place.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2.5">
-              {place.tags.slice(0, 2).map((t, idx) => (
-                <span key={idx} className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--color-bg-subtle)] text-[var(--color-text-muted)] font-medium">
-                  #{t}
-                </span>
-              ))}
-            </div>
-          )}
+          {(() => {
+            const tagsList = Array.isArray(place.tags)
+              ? place.tags
+              : (typeof place.tags === 'string'
+                  ? place.tags.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean)
+                  : []);
+            if (tagsList.length === 0) return null;
+            return (
+              <div className="flex flex-wrap gap-1 mt-2.5">
+                {tagsList.slice(0, 2).map((t, idx) => (
+                  <span key={idx} className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--color-bg-subtle)] text-[var(--color-text-muted)] font-medium">
+                    #{t}
+                  </span>
+                ))}
+              </div>
+            );
+          })()}
 
           {/* Review source link badge */}
           {place.sourceLink && sourceInfo && (

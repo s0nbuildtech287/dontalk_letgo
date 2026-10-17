@@ -671,15 +671,23 @@ function DetailModal({ place, onClose, onSchedule, onVisited, onDelete }) {
             </div>
           )}
 
-          {place.tags && place.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {place.tags.map((t, idx) => (
-                <span key={idx} className="text-xs px-2.5 py-1 rounded-lg bg-[var(--color-bg-subtle)] text-[var(--color-text-muted)] font-medium">
-                  #{t}
-                </span>
-              ))}
-            </div>
-          )}
+          {(() => {
+            const tagsList = Array.isArray(place.tags)
+              ? place.tags
+              : (typeof place.tags === 'string'
+                  ? place.tags.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean)
+                  : []);
+            if (tagsList.length === 0) return null;
+            return (
+              <div className="flex flex-wrap gap-1.5">
+                {tagsList.map((t, idx) => (
+                  <span key={idx} className="text-xs px-2.5 py-1 rounded-lg bg-[var(--color-bg-subtle)] text-[var(--color-text-muted)] font-medium">
+                    #{t}
+                  </span>
+                ))}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Bottom Actions */}
