@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   X, 
   MapPin, 
@@ -7,14 +7,31 @@ import {
   CheckCircle2, 
   ExternalLink, 
   Trash2, 
-  Image, 
+  Image as ImageIcon, 
   DollarSign, 
   Tag, 
   Clock,
-  Sparkles
+  Sparkles,
+  Upload,
+  Link as LinkIcon,
+  Loader2,
+  Check,
+  AlertCircle
 } from 'lucide-react';
 import { useAppStore } from '../context/StoreContext';
 import { LoginModal } from './LoginModal';
+import { api } from '../api/client';
+
+export function getSourceInfo(url) {
+  if (!url || !url.trim()) return null;
+  const clean = url.toLowerCase().trim();
+  if (clean.includes('tiktok.com')) return { label: 'TikTok', icon: '🎵', color: 'bg-black text-white' };
+  if (clean.includes('facebook.com') || clean.includes('fb.watch') || clean.includes('fb.com')) return { label: 'Facebook', icon: '📘', color: 'bg-blue-600 text-white' };
+  if (clean.includes('youtube.com') || clean.includes('youtu.be')) return { label: 'YouTube', icon: '▶️', color: 'bg-red-600 text-white' };
+  if (clean.includes('instagram.com')) return { label: 'Instagram', icon: '📸', color: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' };
+  if (clean.includes('google.com/maps') || clean.includes('maps.app.goo.gl')) return { label: 'Google Maps', icon: '📍', color: 'bg-emerald-600 text-white' };
+  return { label: 'Bài viết', icon: '🔗', color: 'bg-stone-700 text-white' };
+}
 
 export function Modals() {
   const { 
@@ -81,14 +98,172 @@ export function Modals() {
   );
 }
 
+// -------------------------------------------------------------
+// REUSABLE IMAGE INPUT / UPLOADER (DRIVE UPLOAD + DIRECT URL)
+// -------------------------------------------------------------
+function ImageUploader({ imageUrl, setImageUrl }) {
+  const [mode, setMode] = useState('upload'); // 'upload' | 'url'
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [isDriveUploaded, setIsDriveUploaded] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadError('');
+    setUploading(true);
+
+    // Instant local preview
+    const previewUrl = URL.createObjectURL(file);
+    setImageUrl(previewUrl);
+
+    try {
+      const res = await api.upload.image(file);
+      if (res && res.directUrl) {
+        setImageUrl(res.directUrl);
+        setIsDriveUploaded(true);
+      } else {
+        // Fallback: keep preview or inform
+        setIsDriveUploaded(false);
+      }
+    } catch (err) {
+      console.warn("Upload failed, using local preview:", err);
+      setUploadError("Không thể tải lên Drive, đang dùng ảnh cục bộ.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-bold text-[var(--color-text-main)] block">
+          Hình ảnh địa điểm
+        </label>
+        <div className="flex items-center gap-1 p-0.5 rounded-lg bg-[var(--color-bg-subtle)] border border-[var(--color-border)] text-[11px] font-semibold">
+          <button
+            type="button"
+            onClick={() => setMode('upload')}
+            className={`px-2.5 py-1 rounded-md transition-all flex items-center gap-1 ${
+              mode === 'upload' 
+                ? 'bg-[var(--color-bg-surface)] text-[#FF6B4A] shadow-xs font-bold' 
+                : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]'
+            }`}
+          >
+            <Upload className="w-3 h-3" />
+            <span>Tải ảnh từ máy</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('url')}
+            className={`px-2.5 py-1 rounded-md transition-all flex items-center gap-1 ${
+              mode === 'url' 
+                ? 'bg-[var(--color-bg-surface)] text-[#FF6B4A] shadow-xs font-bold' 
+                : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]'
+            }`}
+          >
+            <LinkIcon className="w-3 h-3" />
+            <span>Dán link ảnh</span>
+          </button>
+        </div>
+      </div>
+
+      {mode === 'upload' ? (
+        <div>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileChange} 
+            accept="image/*" 
+            className="hidden" 
+          />
+          <div 
+            onClick={() => fileInputRef.current?.click()}
+            className="border-2 border-dashed border-[var(--color-border)] hover:border-[#FF6B4A] rounded-2xl p-4 text-center cursor-pointer bg-[var(--color-bg-subtle)]/60 hover:bg-[#FFEBE6]/20 transition-all group"
+          >
+            {uploading ? (
+              <div className="flex flex-col items-center justify-center py-2 text-xs text-[#FF6B4A] font-bold">
+                <Loader2 className="w-6 h-6 animate-spin mb-1.5" />
+                <span>Đang tải ảnh lên Google Drive...</span>
+              </div>
+            ) : imageUrl ? (
+              <div className="relative aspect-[16/9] max-h-36 mx-auto rounded-xl overflow-hidden bg-black/10">
+                <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold transition-opacity">
+                  Bấm để đổi ảnh khác
+                </div>
+                {isDriveUploaded && (
+                  <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-emerald-600/90 text-white text-[10px] font-bold flex items-center gap-1 shadow">
+                    <Check className="w-3 h-3" /> Google Drive
+                  </span>
+                )}
+              </div>
+            ) : (
+              <div className="py-2 text-center">
+                <div className="w-10 h-10 rounded-2xl bg-[#FFEBE6] dark:bg-[#3D221B] text-[#FF6B4A] flex items-center justify-center mx-auto mb-1.5 group-hover:scale-105 transition-transform">
+                  <Upload className="w-5 h-5" />
+                </div>
+                <p className="text-xs font-bold text-[var(--color-text-main)]">
+                  Nhấn để chọn ảnh từ thư viện thiết bị
+                </p>
+                <p className="text-[10px] text-[var(--color-text-muted)] mt-0.5">
+                  Tự động tải và đồng bộ trực tiếp lên Google Drive
+                </p>
+              </div>
+            )}
+          </div>
+          {uploadError && (
+            <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" /> {uploadError}
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <div className="relative">
+            <ImageIcon className="w-4 h-4 text-[var(--color-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input 
+              type="url" 
+              value={imageUrl}
+              onChange={(e) => {
+                setImageUrl(e.target.value);
+                setIsDriveUploaded(false);
+              }}
+              placeholder="Dán link ảnh (https://images.unsplash.com/...)"
+              className="w-full bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] text-xs pl-10 pr-3.5 py-2.5 rounded-xl border border-[var(--color-border)] focus:border-[#FF6B4A] focus:outline-none"
+            />
+          </div>
+          {imageUrl && (
+            <div className="relative aspect-[16/9] max-h-32 rounded-xl overflow-hidden border border-[var(--color-border)] bg-[var(--color-bg-subtle)]">
+              <img 
+                src={imageUrl} 
+                alt="URL Preview" 
+                className="w-full h-full object-cover" 
+                onError={(e) => { e.target.style.display = 'none'; }}
+              />
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// -------------------------------------------------------------
 // 1. QUICK ADD MODAL
+// -------------------------------------------------------------
 function QuickAddModal({ onClose, onAdd }) {
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
   const [category, setCategory] = useState('an');
   const [priceRange, setPriceRange] = useState('$$');
   const [imageUrl, setImageUrl] = useState('');
+  const [sourceLink, setSourceLink] = useState('');
   const [reviewNote, setReviewNote] = useState('');
+
+  const sourceInfo = getSourceInfo(sourceLink);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -109,6 +284,7 @@ function QuickAddModal({ onClose, onAdd }) {
       categoryLabel: categoryLabels[category] || 'Ăn uống',
       priceRange,
       imageUrl: imageUrl || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80',
+      sourceLink: sourceLink.trim(),
       reviewNote,
       tags: ['Mới thêm']
     });
@@ -118,22 +294,28 @@ function QuickAddModal({ onClose, onAdd }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-lg rounded-3xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-2xl overflow-hidden select-none">
-        <div className="p-5 pb-4 border-b border-[var(--color-border-subtle)] flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[#FFEBE6] dark:bg-[#3D221B] text-[#FF6B4A] flex items-center justify-center font-bold">
+      <div className="w-full max-w-lg rounded-3xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-2xl overflow-hidden select-none flex flex-col max-h-[92vh]">
+        <div className="p-5 pb-4 border-b border-[var(--color-border-subtle)] flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#FFEBE6] dark:bg-[#3D221B] text-[#FF6B4A] flex items-center justify-center font-bold text-lg">
               +
             </div>
-            <h3 className="font-extrabold text-base text-[var(--color-text-main)]">
-              Thêm Quán Mới Vào Wishlist
-            </h3>
+            <div>
+              <h3 className="font-extrabold text-base text-[var(--color-text-main)]">
+                Thêm Quán Mới Vào Wishlist
+              </h3>
+              <p className="text-[11px] text-[var(--color-text-muted)]">
+                Lưu nhanh từ TikTok, Facebook hoặc đề xuất bạn bè
+              </p>
+            </div>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:bg-[var(--color-bg-subtle)]">
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1">
+          {/* Tên quán */}
           <div>
             <label className="text-xs font-bold text-[var(--color-text-main)] block mb-1">
               Tên quán / Địa điểm <span className="text-red-500">*</span>
@@ -148,6 +330,7 @@ function QuickAddModal({ onClose, onAdd }) {
             />
           </div>
 
+          {/* Danh mục & Giá */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-bold text-[var(--color-text-main)] block mb-1">
@@ -182,9 +365,10 @@ function QuickAddModal({ onClose, onAdd }) {
             </div>
           </div>
 
+          {/* Địa chỉ */}
           <div>
             <label className="text-xs font-bold text-[var(--color-text-main)] block mb-1">
-              Địa chỉ / Quận
+              Địa chỉ / Khu vực
             </label>
             <input 
               type="text" 
@@ -195,19 +379,38 @@ function QuickAddModal({ onClose, onAdd }) {
             />
           </div>
 
+          {/* Link bài viết (TikTok, FB, YouTube, Maps...) */}
           <div>
-            <label className="text-xs font-bold text-[var(--color-text-main)] block mb-1">
-              Link ảnh (Tuỳ chọn)
-            </label>
-            <input 
-              type="url" 
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://images.unsplash.com/..."
-              className="w-full bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] text-xs px-3.5 py-2.5 rounded-xl border border-[var(--color-border)] focus:border-[#FF6B4A] focus:outline-none"
-            />
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-bold text-[var(--color-text-main)] block">
+                Link bài viết review (TikTok, FB, YouTube, Maps...)
+              </label>
+              {sourceInfo && (
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${sourceInfo.color}`}>
+                  <span>{sourceInfo.icon}</span>
+                  <span>{sourceInfo.label}</span>
+                </span>
+              )}
+            </div>
+            <div className="relative">
+              <LinkIcon className="w-4 h-4 text-[var(--color-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input 
+                type="url" 
+                value={sourceLink}
+                onChange={(e) => setSourceLink(e.target.value)}
+                placeholder="Dán link clip TikTok, bài post Facebook, video YouTube, Google Maps..."
+                className="w-full bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] text-xs pl-10 pr-3.5 py-2.5 rounded-xl border border-[var(--color-border)] focus:border-[#FF6B4A] focus:outline-none"
+              />
+            </div>
+            <p className="text-[10px] text-[var(--color-text-muted)] mt-1">
+              Hỗ trợ tự động nhận diện TikTok, Facebook, YouTube, Instagram và Google Maps.
+            </p>
           </div>
 
+          {/* Tải ảnh hoặc Dán link ảnh */}
+          <ImageUploader imageUrl={imageUrl} setImageUrl={setImageUrl} />
+
+          {/* Ghi chú */}
           <div>
             <label className="text-xs font-bold text-[var(--color-text-main)] block mb-1">
               Ghi chú / Món ngon nên thử
@@ -221,7 +424,7 @@ function QuickAddModal({ onClose, onAdd }) {
             ></textarea>
           </div>
 
-          <div className="pt-2 flex justify-end gap-2.5">
+          <div className="pt-2 flex justify-end gap-2.5 shrink-0">
             <button 
               type="button" 
               onClick={onClose}
@@ -231,7 +434,7 @@ function QuickAddModal({ onClose, onAdd }) {
             </button>
             <button 
               type="submit"
-              className="px-5 py-2 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-xs font-bold shadow-md shadow-[#FF6B4A]/25 transition-all"
+              className="px-5 py-2.5 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-xs font-bold shadow-md shadow-[#FF6B4A]/25 transition-all"
             >
               Lưu vào Wishlist
             </button>
@@ -242,8 +445,12 @@ function QuickAddModal({ onClose, onAdd }) {
   );
 }
 
+// -------------------------------------------------------------
 // 2. DETAIL MODAL
+// -------------------------------------------------------------
 function DetailModal({ place, onClose, onSchedule, onVisited, onDelete }) {
+  const sourceInfo = getSourceInfo(place.sourceLink);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
       <div className="w-full max-w-lg rounded-3xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-2xl overflow-hidden select-none flex flex-col max-h-[90vh]">
@@ -288,6 +495,32 @@ function DetailModal({ place, onClose, onSchedule, onVisited, onDelete }) {
               <span>{place.rating} / 5.0</span>
             </div>
           </div>
+
+          {/* Source Link Section */}
+          {place.sourceLink && sourceInfo && (
+            <div className="p-3 rounded-2xl bg-[var(--color-bg-subtle)] border border-[var(--color-border-subtle)] flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="text-xl shrink-0">{sourceInfo.icon}</span>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-[var(--color-text-main)]">
+                    Bài viết review gốc
+                  </p>
+                  <p className="text-[10px] text-[var(--color-text-muted)] truncate max-w-xs">
+                    {place.sourceLink}
+                  </p>
+                </div>
+              </div>
+              <a 
+                href={place.sourceLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#FF6B4A] to-[#FF8C69] hover:from-[#E85736] hover:to-[#FF6B4A] text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 shrink-0"
+              >
+                <span>Xem trên {sourceInfo.label}</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+          )}
 
           {place.reviewNote && (
             <div>
@@ -344,7 +577,9 @@ function DetailModal({ place, onClose, onSchedule, onVisited, onDelete }) {
   );
 }
 
+// -------------------------------------------------------------
 // 3. SCHEDULE MODAL
+// -------------------------------------------------------------
 function ScheduleModal({ place, onClose, onAssign }) {
   const days = [
     "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"
@@ -386,17 +621,25 @@ function ScheduleModal({ place, onClose, onAssign }) {
   );
 }
 
+// -------------------------------------------------------------
 // 4. EDIT MODAL
+// -------------------------------------------------------------
 function EditModal({ place, onClose, onUpdate }) {
   const [title, setTitle] = useState(place.title || '');
   const [location, setLocation] = useState(place.location || '');
+  const [imageUrl, setImageUrl] = useState(place.imageUrl || '');
+  const [sourceLink, setSourceLink] = useState(place.sourceLink || '');
   const [reviewNote, setReviewNote] = useState(place.reviewNote || '');
+
+  const sourceInfo = getSourceInfo(sourceLink);
 
   const handleSave = (e) => {
     e.preventDefault();
     onUpdate(place.id, {
       title,
       location,
+      imageUrl,
+      sourceLink: sourceLink.trim(),
       reviewNote
     });
     onClose();
@@ -404,8 +647,8 @@ function EditModal({ place, onClose, onUpdate }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-md rounded-3xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-2xl p-5 select-none">
-        <div className="flex items-center justify-between pb-3 mb-4 border-b border-[var(--color-border-subtle)]">
+      <div className="w-full max-w-md rounded-3xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-2xl p-5 select-none flex flex-col max-h-[92vh]">
+        <div className="flex items-center justify-between pb-3 mb-4 border-b border-[var(--color-border-subtle)] shrink-0">
           <h3 className="font-extrabold text-sm text-[var(--color-text-main)]">
             Chỉnh sửa địa điểm
           </h3>
@@ -414,7 +657,7 @@ function EditModal({ place, onClose, onUpdate }) {
           </button>
         </div>
 
-        <form onSubmit={handleSave} className="space-y-3">
+        <form onSubmit={handleSave} className="space-y-3.5 overflow-y-auto flex-1 pr-1">
           <div>
             <label className="text-xs font-bold text-[var(--color-text-main)] block mb-1">Tên quán</label>
             <input 
@@ -422,7 +665,7 @@ function EditModal({ place, onClose, onUpdate }) {
               required
               value={title} 
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] text-xs px-3 py-2 rounded-xl border border-[var(--color-border)] focus:border-[#FF6B4A] focus:outline-none"
+              className="w-full bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] text-xs px-3 py-2.5 rounded-xl border border-[var(--color-border)] focus:border-[#FF6B4A] focus:outline-none"
             />
           </div>
 
@@ -432,9 +675,37 @@ function EditModal({ place, onClose, onUpdate }) {
               type="text" 
               value={location} 
               onChange={(e) => setLocation(e.target.value)}
-              className="w-full bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] text-xs px-3 py-2 rounded-xl border border-[var(--color-border)] focus:border-[#FF6B4A] focus:outline-none"
+              className="w-full bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] text-xs px-3 py-2.5 rounded-xl border border-[var(--color-border)] focus:border-[#FF6B4A] focus:outline-none"
             />
           </div>
+
+          {/* Link bài viết */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-bold text-[var(--color-text-main)] block">
+                Link bài viết review
+              </label>
+              {sourceInfo && (
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${sourceInfo.color}`}>
+                  <span>{sourceInfo.icon}</span>
+                  <span>{sourceInfo.label}</span>
+                </span>
+              )}
+            </div>
+            <div className="relative">
+              <LinkIcon className="w-4 h-4 text-[var(--color-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input 
+                type="url" 
+                value={sourceLink}
+                onChange={(e) => setSourceLink(e.target.value)}
+                placeholder="https://tiktok.com/@... hoặc facebook.com/..."
+                className="w-full bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] text-xs pl-10 pr-3.5 py-2.5 rounded-xl border border-[var(--color-border)] focus:border-[#FF6B4A] focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Hình ảnh */}
+          <ImageUploader imageUrl={imageUrl} setImageUrl={setImageUrl} />
 
           <div>
             <label className="text-xs font-bold text-[var(--color-text-main)] block mb-1">Ghi chú</label>
@@ -446,7 +717,7 @@ function EditModal({ place, onClose, onUpdate }) {
             ></textarea>
           </div>
 
-          <div className="pt-2 flex justify-end gap-2">
+          <div className="pt-2 flex justify-end gap-2 shrink-0">
             <button 
               type="button" 
               onClick={onClose}
@@ -456,7 +727,7 @@ function EditModal({ place, onClose, onUpdate }) {
             </button>
             <button 
               type="submit"
-              className="px-5 py-2 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-xs font-bold shadow-md shadow-[#FF6B4A]/25 transition-all"
+              className="px-5 py-2.5 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-xs font-bold shadow-md shadow-[#FF6B4A]/25 transition-all"
             >
               Lưu thay đổi
             </button>

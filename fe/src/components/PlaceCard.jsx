@@ -13,6 +13,7 @@ import {
   Edit3
 } from 'lucide-react';
 import { useAppStore } from '../context/StoreContext';
+import { getSourceInfo } from './Modals';
 
 export function PlaceCard({ place }) {
   const { 
@@ -25,6 +26,7 @@ export function PlaceCard({ place }) {
   } = useAppStore();
 
   const isOverdue = place.status === 'want' && (place.savedDaysAgo || 0) >= 14;
+  const sourceInfo = getSourceInfo(place.sourceLink);
 
   const getStatusBadge = () => {
     switch (place.status) {
@@ -139,6 +141,24 @@ export function PlaceCard({ place }) {
                   #{t}
                 </span>
               ))}
+            </div>
+          )}
+
+          {/* Review source link badge */}
+          {place.sourceLink && sourceInfo && (
+            <div className="mt-2.5">
+              <a 
+                href={place.sourceLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold ${sourceInfo.color} hover:opacity-90 shadow-xs transition-all`}
+                title={`Mở bài viết gốc trên ${sourceInfo.label}`}
+              >
+                <span>{sourceInfo.icon}</span>
+                <span>{sourceInfo.label}</span>
+                <ExternalLink className="w-2.5 h-2.5 opacity-80" />
+              </a>
             </div>
           )}
         </div>
