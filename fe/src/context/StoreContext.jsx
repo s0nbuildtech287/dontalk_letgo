@@ -76,6 +76,7 @@ export function StoreProvider({ children }) {
     location: 'all',
     priceRange: 'all',
     status: 'all',
+    sortBy: 'priority',
     search: ''
   });
 
@@ -248,6 +249,7 @@ export function StoreProvider({ children }) {
       location: 'all',
       priceRange: 'all',
       status: 'all',
+      sortBy: 'priority',
       search: ''
     });
   };
@@ -256,6 +258,7 @@ export function StoreProvider({ children }) {
   const addPlace = (placeData) => {
     if (!checkAuth('thêm địa điểm')) return null;
 
+    const nextStt = places.length + 1;
     const newPlace = {
       id: "place-" + Date.now(),
       title: placeData.title || "Địa điểm mới",
@@ -266,6 +269,7 @@ export function StoreProvider({ children }) {
       priceText: placeData.priceText || placeData.priceRange || "50k - 100k",
       status: placeData.status || "want",
       savedDaysAgo: 0,
+      stt: nextStt,
       rating: (placeData.rating !== undefined && placeData.rating !== null) ? Number(placeData.rating) : 4.5,
       reviewNote: placeData.reviewNote || "",
       imageUrl: placeData.imageUrl || "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80",
@@ -276,7 +280,7 @@ export function StoreProvider({ children }) {
       suggestedWeek: false,
       scheduledDate: placeData.scheduledDate || null
     };
-    setPlaces(prev => [newPlace, ...prev]);
+    setPlaces(prev => [...prev, newPlace]);
     // Persist to PostgreSQL backend
     api.places.create(newPlace);
     return newPlace;
@@ -355,7 +359,13 @@ export function StoreProvider({ children }) {
 
   // Computed values
   const filteredPlaces = useMemo(() => {
-    return places.filter(p => {
+    // Ensure every place has an accurate STT (1-based based on creation order)
+    const withStt = places.map((p, idx) => ({
+      ...p,
+      stt: p.stt || (idx + 1)
+    }));
+
+    const result = withStt.filter(p => {
       if (filters.category !== 'all' && p.category !== filters.category) return false;
       if (filters.priceRange !== 'all' && p.priceRange !== filters.priceRange) return false;
       if (filters.status !== 'all' && p.status !== filters.status) return false;
@@ -371,6 +381,28 @@ export function StoreProvider({ children }) {
       }
       return true;
     });
+
+    // Sorting by user preference
+    result.sort((a, b) => {
+      if (filters.sortBy === 'priority') {
+        return (a.stt || 0) - (b.stt || 0); // Thêm trước ưu tiên đi trước (#1 -> #N)
+      }
+      if (filters.sortBy === 'newest') {
+        return (b.stt || 0) - (a.stt || 0); // Mới thêm gần đây (#N -> #1)
+      }
+      if (filters.sortBy === 'rating') {
+        return (b.rating || 0) - (a.rating || 0);
+      }
+      if (filters.sortBy === 'votes') {
+        return (b.votes || 0) - (a.votes || 0);
+      }
+      if (filters.sortBy === 'overdue') {
+        return (b.savedDaysAgo || 0) - (a.savedDaysAgo || 0);
+      }
+      return (a.stt || 0) - (b.stt || 0);
+    });
+
+    return result;
   }, [places, filters]);
 
   const overduePlaces = useMemo(() => {

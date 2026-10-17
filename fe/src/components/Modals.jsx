@@ -589,11 +589,16 @@ function DetailModal({ place, onClose, onSchedule, onVisited, onDelete }) {
           </button>
 
           <div className="absolute bottom-4 left-4 right-4">
-            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#FF6B4A] text-white">
-              {place.categoryLabel}
-            </span>
-            <h2 className="text-xl font-extrabold text-white mt-1">
-              {place.title}
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#FF6B4A] to-amber-500 text-white shadow-sm border border-white/20">
+                STT #{place.stt || 1} • Ưu tiên
+              </span>
+              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/60 text-white backdrop-blur-md">
+                {place.categoryLabel}
+              </span>
+            </div>
+            <h2 className="text-xl font-extrabold text-white">
+              #{place.stt || 1}. {place.title}
             </h2>
             <p className="text-xs text-white/80 flex items-center gap-1 mt-0.5">
               <MapPin className="w-3.5 h-3.5 text-[#FF6B4A]" /> {place.location}
@@ -604,9 +609,14 @@ function DetailModal({ place, onClose, onSchedule, onVisited, onDelete }) {
         {/* Content details */}
         <div className="p-6 space-y-4 overflow-y-auto flex-1">
           <div className="flex items-center justify-between pb-3 border-b border-[var(--color-border-subtle)] text-xs">
-            <div>
-              <span className="text-[var(--color-text-muted)]">Khoảng giá: </span>
-              <strong className="text-[var(--color-text-main)]">{place.priceText || place.priceRange}</strong>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded-md bg-[#FFEBE6] text-[#FF6B4A] dark:bg-[#3B221D] dark:text-[#FF7B5C] font-extrabold text-[11px]">
+                STT #{place.stt || 1}
+              </span>
+              <div>
+                <span className="text-[var(--color-text-muted)]">Khoảng giá: </span>
+                <strong className="text-[var(--color-text-main)]">{place.priceText || place.priceRange}</strong>
+              </div>
             </div>
             <div className="flex items-center gap-1 text-amber-500 font-bold">
               <Star className="w-4 h-4 fill-amber-400" />

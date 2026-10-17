@@ -35,6 +35,8 @@ public class PlaceDto {
     private String scheduledDate;
     private String scheduledDayName;
     private String visitedDate;
+    private Integer stt;
+    private java.time.LocalDateTime createdAt;
 
     public static PlaceDto fromEntity(Place entity) {
         if (entity == null) return null;
@@ -78,6 +80,7 @@ public class PlaceDto {
                 .scheduledDate(entity.getScheduledDate())
                 .scheduledDayName(entity.getScheduledDayName())
                 .visitedDate(entity.getVisitedDate())
+                .createdAt(entity.getCreatedAt())
                 .build();
     }
 

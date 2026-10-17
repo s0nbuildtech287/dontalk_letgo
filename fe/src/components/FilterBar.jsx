@@ -73,6 +73,25 @@ export function FilterBar({ showViewMode = true }) {
           )}
         </div>
 
+        {/* Sort Selector */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <label className="text-[11px] font-bold text-[var(--color-text-muted)] flex items-center gap-1">
+            <SlidersHorizontal className="w-3.5 h-3.5 text-[#FF6B4A]" />
+            <span className="hidden lg:inline">Sắp xếp:</span>
+          </label>
+          <select
+            value={filters.sortBy || 'priority'}
+            onChange={(e) => setFilter('sortBy', e.target.value)}
+            className="bg-[var(--color-bg-surface)] text-[var(--color-text-main)] text-xs font-bold py-2 px-2.5 rounded-xl border border-[var(--color-border)] focus:border-[var(--color-primary)] focus:outline-none shadow-sm cursor-pointer"
+          >
+            <option value="priority">🔢 Theo STT (Thêm trước ưu tiên trước)</option>
+            <option value="newest">⏱️ Mới thêm gần đây</option>
+            <option value="rating">⭐ Đánh giá sao cao nhất</option>
+            <option value="votes">❤️ Thả tim nhiều nhất</option>
+            <option value="overdue">⏳ Ngâm lâu nhất</option>
+          </select>
+        </div>
+
         {/* View Mode Switcher */}
         {showViewMode && (
           <div className="flex items-center gap-1 p-1 rounded-xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] self-end sm:self-auto shrink-0 shadow-sm">

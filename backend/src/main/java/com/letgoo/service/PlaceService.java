@@ -24,17 +24,29 @@ public class PlaceService {
 
     @Transactional(readOnly = true)
     public List<PlaceDto> getAllPlaces() {
-        return placeRepository.findAllByOrderByCreatedAtDesc()
-                .stream()
-                .map(PlaceDto::fromEntity)
-                .collect(Collectors.toList());
+        List<Place> places = placeRepository.findAllByOrderByCreatedAtAsc();
+        List<PlaceDto> dtos = new java.util.ArrayList<>();
+        for (int i = 0; i < places.size(); i++) {
+            PlaceDto dto = PlaceDto.fromEntity(places.get(i));
+            dto.setStt(i + 1);
+            dtos.add(dto);
+        }
+        return dtos;
     }
 
     @Transactional(readOnly = true)
     public PlaceDto getPlaceById(String id) {
         Place place = placeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy địa điểm: " + id));
-        return PlaceDto.fromEntity(place);
+        PlaceDto dto = PlaceDto.fromEntity(place);
+        List<Place> allPlaces = placeRepository.findAllByOrderByCreatedAtAsc();
+        for (int i = 0; i < allPlaces.size(); i++) {
+            if (allPlaces.get(i).getId().equals(id)) {
+                dto.setStt(i + 1);
+                break;
+            }
+        }
+        return dto;
     }
 
     @Transactional
@@ -46,7 +58,9 @@ public class PlaceService {
         Place entity = dto.toEntity();
         Place saved = placeRepository.save(entity);
         log.info("Created new place: {} with id: {}", saved.getTitle(), saved.getId());
-        return PlaceDto.fromEntity(saved);
+        PlaceDto res = PlaceDto.fromEntity(saved);
+        res.setStt((int) placeRepository.count());
+        return res;
     }
 
     @Transactional

@@ -8,6 +8,7 @@ import java.util.List;
 
 @Repository
 public interface PlaceRepository extends JpaRepository<Place, String> {
+    List<Place> findAllByOrderByCreatedAtAsc();
     List<Place> findAllByOrderByCreatedAtDesc();
     List<Place> findByStatus(String status);
     List<Place> findByCategory(String category);
