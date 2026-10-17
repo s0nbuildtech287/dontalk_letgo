@@ -18,8 +18,9 @@ export function FullMapView() {
         attributionControl: false
       });
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19
+      L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
       }).addTo(map);
 
       mapInstanceRef.current = map;
@@ -48,10 +49,14 @@ export function FullMapView() {
 
         const marker = L.marker(p.mapCoords, { icon: customIcon }).addTo(map);
         marker.bindPopup(`
-          <div style="font-family: inherit; min-width: 160px;">
-            <b style="font-size: 13px;">${p.title}</b>
-            <p style="font-size: 11px; margin: 2px 0; color: #666;">${p.location}</p>
-            <span style="font-size: 10px; font-weight: bold; color: ${markerColor};">${p.categoryLabel} • ${p.priceRange}</span>
+          <div style="font-family: inherit; width: 190px; padding: 2px;">
+            <img src="${p.imageUrl}" style="width: 100%; height: 95px; object-fit: cover; border-radius: 8px; margin-bottom: 6px;" />
+            <b style="font-size: 13px; color: #1F2937; display: block; line-height: 1.2;">${p.title}</b>
+            <p style="font-size: 11px; margin: 3px 0; color: #6B7280;">${p.location}</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+              <span style="font-size: 11px; font-weight: bold; color: #FF6B4A;">${p.priceText || p.priceRange}</span>
+              <span style="font-size: 10px; font-weight: 700; background: #FFF4E5; color: #B45309; padding: 1px 6px; border-radius: 4px;">${p.categoryLabel}</span>
+            </div>
           </div>
         `);
         marker.on('click', () => setDetailPlace(p));
