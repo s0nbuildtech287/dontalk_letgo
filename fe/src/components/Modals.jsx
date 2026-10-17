@@ -109,8 +109,8 @@ export function Modals() {
         <ScheduleModal 
           place={schedulingPlace} 
           onClose={() => setSchedulingPlace(null)} 
-          onAssign={(day) => {
-            assignToPlan(schedulingPlace.id, day);
+          onAssign={(days, details) => {
+            assignToPlan(schedulingPlace.id, days, details);
             setSchedulingPlace(null);
           }}
         />
@@ -721,41 +721,246 @@ function DetailModal({ place, onClose, onSchedule, onVisited, onDelete }) {
 // 3. SCHEDULE MODAL
 // -------------------------------------------------------------
 function ScheduleModal({ place, onClose, onAssign }) {
-  const days = [
-    "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"
-  ];
+  const [weekOffset, setWeekOffset] = useState(0); // 0 = tuần này, 1 = tuần sau, 2 = 2 tuần tới
+  const [selectedDays, setSelectedDays] = useState(['Thứ Bảy']);
+  const [time, setTime] = useState('09:00');
+  const [note, setNote] = useState('');
+
+  // Calculate dates for selected week offset
+  const now = new Date();
+  const currentDay = now.getDay();
+  const distToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + distToMonday + weekOffset * 7);
+
+  const daysData = [
+    { name: 'Thứ Hai', short: 'T2' },
+    { name: 'Thứ Ba', short: 'T3' },
+    { name: 'Thứ Tư', short: 'T4' },
+    { name: 'Thứ Năm', short: 'T5' },
+    { name: 'Thứ Sáu', short: 'T6' },
+    { name: 'Thứ Bảy', short: 'T7' },
+    { name: 'Chủ Nhật', short: 'CN' }
+  ].map((d, idx) => {
+    const dayDate = new Date(monday);
+    dayDate.setDate(monday.getDate() + idx);
+    const dateFormatted = `${String(dayDate.getDate()).padStart(2, '0')}/${String(dayDate.getMonth() + 1).padStart(2, '0')}`;
+    const fullDate = dayDate.toISOString().split('T')[0];
+    const isToday = fullDate === new Date().toISOString().split('T')[0];
+    return {
+      ...d,
+      dateFormatted,
+      fullDate,
+      isToday
+    };
+  });
+
+  const toggleDay = (dayName) => {
+    setSelectedDays(prev => 
+      prev.includes(dayName) 
+        ? (prev.length > 1 ? prev.filter(d => d !== dayName) : prev)
+        : [...prev, dayName]
+    );
+  };
+
+  const selectWeekend = () => {
+    setSelectedDays(['Thứ Bảy', 'Chủ Nhật']);
+  };
+
+  const selectAll = () => {
+    setSelectedDays(daysData.map(d => d.name));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (selectedDays.length === 0) return;
+    onAssign(selectedDays, { time, note, weekOffset });
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-sm rounded-3xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-2xl p-6 select-none">
-        <div className="flex items-center justify-between pb-3 mb-4 border-b border-[var(--color-border-subtle)]">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-[#FF6B4A]" />
-            <h3 className="font-extrabold text-sm text-[var(--color-text-main)]">
-              Lên lịch: {place.title}
-            </h3>
+      <div className="w-full max-w-md rounded-3xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-2xl p-6 select-none flex flex-col max-h-[92vh]">
+        <div className="flex items-center justify-between pb-3 mb-4 border-b border-[var(--color-border-subtle)] shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-[#FFEBE6] dark:bg-[#3D221B] text-[#FF6B4A]">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-sm text-[var(--color-text-main)] truncate max-w-[240px]">
+                Lên lịch: {place.title}
+              </h3>
+              <p className="text-[11px] text-[var(--color-text-muted)]">
+                Chọn tuần, nhiều ngày và giờ hẹn cụ thể
+              </p>
+            </div>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg text-[var(--color-text-muted)] hover:bg-[var(--color-bg-subtle)]">
+          <button onClick={onClose} className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:bg-[var(--color-bg-subtle)]">
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <p className="text-xs text-[var(--color-text-muted)] mb-3">
-          Chọn thứ trong tuần bạn muốn ghé:
-        </p>
+        <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto flex-1 pr-1">
+          {/* 1. CHỌN TUẦN */}
+          <div>
+            <label className="text-xs font-bold text-[var(--color-text-main)] block mb-1.5">
+              1. Chọn tuần đi:
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { offset: 0, label: 'Tuần này' },
+                { offset: 1, label: 'Tuần sau' },
+                { offset: 2, label: '2 tuần tới' }
+              ].map(w => (
+                <button
+                  key={w.offset}
+                  type="button"
+                  onClick={() => setWeekOffset(w.offset)}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border ${
+                    weekOffset === w.offset
+                      ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)] shadow-sm'
+                      : 'bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] border-[var(--color-border)] hover:border-[#FF6B4A]'
+                  }`}
+                >
+                  {w.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-[#FF6B4A] font-semibold mt-1.5">
+              🗓️ Dải ngày: {daysData[0].dateFormatted} – {daysData[6].dateFormatted}/{now.getFullYear()}
+            </p>
+          </div>
 
-        <div className="space-y-1.5">
-          {days.map(day => (
+          {/* 2. CHỌN NHIỀU HÔM (MULTI-SELECT DAYS) */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-bold text-[var(--color-text-main)] block">
+                2. Chọn các hôm muốn đi (chọn được nhiều ngày):
+              </label>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={selectWeekend}
+                  className="text-[10px] font-bold text-[#FF6B4A] hover:underline"
+                >
+                  Cuối tuần
+                </button>
+                <span className="text-xs text-[var(--color-text-muted)]">•</span>
+                <button
+                  type="button"
+                  onClick={selectAll}
+                  className="text-[10px] font-bold text-[var(--color-text-muted)] hover:underline"
+                >
+                  Cả tuần
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {daysData.map(d => {
+                const isSelected = selectedDays.includes(d.name);
+                return (
+                  <button
+                    key={d.name}
+                    type="button"
+                    onClick={() => toggleDay(d.name)}
+                    className={`p-2.5 rounded-xl border text-left transition-all relative flex flex-col justify-between ${
+                      isSelected
+                        ? 'bg-[#FFEBE6] dark:bg-[#3D221B] border-[#FF6B4A] text-[#FF6B4A]'
+                        : 'bg-[var(--color-bg-subtle)] border-[var(--color-border)] text-[var(--color-text-main)] hover:border-[var(--color-border-subtle)]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-xs">{d.short}</span>
+                      {d.isToday && (
+                        <span className="text-[9px] font-bold px-1 py-0.2 rounded bg-amber-500 text-white">
+                          Nay
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-1 flex items-center justify-between text-[11px]">
+                      <span className="text-[var(--color-text-muted)]">{d.dateFormatted}</span>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-[#FF6B4A]" />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-[var(--color-text-muted)] mt-1.5">
+              Đã chọn: <span className="font-bold text-[var(--color-text-main)]">{selectedDays.join(', ')}</span> ({selectedDays.length} ngày)
+            </p>
+          </div>
+
+          {/* 3. RÕ GIỜ HẸN (TIME & PRESET CHIPS) */}
+          <div>
+            <label className="text-xs font-bold text-[var(--color-text-main)] block mb-1.5 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-[#FF6B4A]" />
+              <span>3. Giờ hẹn cụ thể:</span>
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] text-sm font-bold px-3 py-2 rounded-xl border border-[var(--color-border)] focus:border-[#FF6B4A] focus:outline-none"
+              />
+              <span className="text-xs text-[var(--color-text-muted)]">hoặc chọn nhanh:</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {[
+                { label: 'Sáng 08:30', val: '08:30' },
+                { label: 'Trưa 11:30', val: '11:30' },
+                { label: 'Chiều 15:00', val: '15:00' },
+                { label: 'Tối 18:30', val: '18:30' },
+                { label: 'Đêm 21:00', val: '21:00' }
+              ].map(chip => (
+                <button
+                  key={chip.val}
+                  type="button"
+                  onClick={() => setTime(chip.val)}
+                  className={`text-[10px] px-2.5 py-1 rounded-lg border font-semibold transition-colors ${
+                    time === chip.val
+                      ? 'bg-[#FF6B4A] text-white border-[#FF6B4A]'
+                      : 'bg-[var(--color-bg-subtle)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[#FF6B4A]'
+                  }`}
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 4. GHI CHÚ */}
+          <div>
+            <label className="text-xs font-bold text-[var(--color-text-main)] block mb-1">
+              4. Ghi chú điểm hẹn:
+            </label>
+            <input
+              type="text"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="VD: Đặt bàn trước, đi cùng nhóm bạn, gọi lẩu..."
+              className="w-full bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] text-xs px-3 py-2.5 rounded-xl border border-[var(--color-border)] focus:border-[#FF6B4A] focus:outline-none"
+            />
+          </div>
+
+          {/* FOOTER BUTTONS */}
+          <div className="pt-2 flex items-center justify-end gap-2 shrink-0 border-t border-[var(--color-border-subtle)]">
             <button
-              key={day}
-              onClick={() => onAssign(day)}
-              className="w-full py-2.5 px-3.5 rounded-xl bg-[var(--color-bg-subtle)] hover:bg-[#FFEBE6] hover:text-[#FF6B4A] dark:hover:bg-[#3D221B] dark:hover:text-[#FF7B5C] text-xs font-bold text-[var(--color-text-main)] text-left transition-colors flex items-center justify-between"
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl text-xs font-bold text-[var(--color-text-muted)] hover:bg-[var(--color-bg-subtle)]"
             >
-              <span>{day}</span>
-              <span className="text-[10px] text-[var(--color-text-muted)]">Chọn &rarr;</span>
+              Hủy
             </button>
-          ))}
-        </div>
+            <button
+              type="submit"
+              className="px-5 py-2.5 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-xs font-bold shadow-md shadow-[#FF6B4A]/25 transition-all flex items-center gap-1.5 active:scale-95"
+            >
+              <Check className="w-3.5 h-3.5" />
+              <span>Lên lịch ({selectedDays.length} ngày)</span>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

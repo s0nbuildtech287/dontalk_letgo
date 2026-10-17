@@ -354,17 +354,52 @@ export function StoreProvider({ children }) {
     api.places.vote(id);
   };
 
-  const assignToPlan = (placeId, dayName) => {
+  const [planDetails, setPlanDetails] = useState(() => {
+    try {
+      const saved = localStorage.getItem('letgoo_plan_details');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('letgoo_plan_details', JSON.stringify(planDetails));
+    } catch (e) {}
+  }, [planDetails]);
+
+  const assignToPlan = (placeId, dayNames, options = {}) => {
     if (!checkAuth('lên lịch trình')) return;
+    const days = Array.isArray(dayNames) ? dayNames : [dayNames];
+    if (days.length === 0) return;
+
     setWeekPlans(prev => {
-      const dayList = prev[dayName] || [];
-      if (!dayList.includes(placeId)) {
-        return { ...prev, [dayName]: [...dayList, placeId] };
-      }
-      return prev;
+      const updated = { ...prev };
+      days.forEach(day => {
+        const dayList = updated[day] || [];
+        if (!dayList.includes(placeId)) {
+          updated[day] = [...dayList, placeId];
+        }
+      });
+      return updated;
     });
-    changeStatus(placeId, 'scheduled', { scheduledDayName: dayName });
-    api.plans.assign(placeId, dayName);
+
+    setPlanDetails(prev => {
+      const updated = { ...prev };
+      days.forEach(day => {
+        const key = `${day}-${placeId}`;
+        updated[key] = {
+          time: options.time || updated[key]?.time || '09:00',
+          note: options.note !== undefined ? options.note : (updated[key]?.note || ''),
+          date: options.date || updated[key]?.date || ''
+        };
+      });
+      return updated;
+    });
+
+    changeStatus(placeId, 'scheduled', { scheduledDayName: days.join(', ') });
+    days.forEach(day => api.plans.assign(placeId, day));
   };
 
   const removeFromPlan = (placeId, dayName) => {
@@ -376,7 +411,27 @@ export function StoreProvider({ children }) {
         [dayName]: prev[dayName].filter(id => id !== placeId)
       };
     });
+
+    setPlanDetails(prev => {
+      const updated = { ...prev };
+      delete updated[`${dayName}-${placeId}`];
+      return updated;
+    });
+
     api.plans.remove(placeId, dayName);
+  };
+
+  const updatePlanDetail = (placeId, dayName, updates = {}) => {
+    setPlanDetails(prev => {
+      const key = `${dayName}-${placeId}`;
+      return {
+        ...prev,
+        [key]: {
+          ...(prev[key] || {}),
+          ...updates
+        }
+      };
+    });
   };
 
   // Computed values
@@ -515,6 +570,8 @@ export function StoreProvider({ children }) {
     toggleVote,
     assignToPlan,
     removeFromPlan,
+    planDetails,
+    updatePlanDetail,
     // Modals
     isQuickAddOpen,
     setIsQuickAddOpen: handleSetIsQuickAddOpen,
