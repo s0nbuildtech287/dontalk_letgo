@@ -63,6 +63,4 @@ npm run preview
 | `GroupView.jsx` | Hội Báo Sài Gòn, bình chọn (vote) điểm đến cho nhóm | [src/components/GroupView.jsx](file:///C:/Users/XUAN%20SON/Desktop/Xuan%20Son%20Version/DontTalk_LetGoo/dontalk_letgo/src/components/GroupView.jsx) |
 | `JournalView.jsx` | Nhật ký lưu giữ kỷ niệm và cảm nhận những chuyến đi đã qua | [src/components/JournalView.jsx](file:///C:/Users/XUAN%20SON/Desktop/Xuan%20Son%20Version/DontTalk_LetGoo/dontalk_letgo/src/components/JournalView.jsx) |
 | `RightPanel.jsx` | Streak tuần, Leaflet Mini-map, Tuần này đi đâu, conversion rate | [src/components/RightPanel.jsx](file:///C:/Users/XUAN%20SON/Desktop/Xuan%20Son%20Version/DontTalk_LetGoo/dontalk_letgo/src/components/RightPanel.jsx) |
-| `Modals.jsx` | Popup Thêm nhanh, Xem chi tiết, Chỉnh sửa, và Lên lịch ngày | [src/components/Modals.jsx](file:///C:/Users/XUAN%20SON/Desktop/Xuan%20Son%20Version/DontTalk_LetGoo/dontalk_letgo/src/components/Modals.jsx) |
-
-*(Lưu ý: Mã nguồn phiên bản Vanilla JS cũ đã được lưu trữ an toàn tại thư mục `src_vanilla/`)*
+| `Modals.jsx` | Popup Thêm nhanh, Xem chi tiết, Chỉnh sửa, và Lên lịch ngày | [fe/src/components/Modals.jsx](file:///C:/Users/XUAN%20SON/Desktop/Xuan%20Son%20Version/DontTalk_LetGoo/dontalk_letgo/fe/src/components/Modals.jsx) |
