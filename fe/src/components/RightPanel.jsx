@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { 
   Flame, 
   MapPin, 
@@ -13,7 +13,8 @@ import { useAppStore } from '../context/StoreContext';
 export function RightPanel() {
   const { 
     places, 
-    weekPlans, 
+    weekPlans,
+    getPlannedPlaceIds, 
     stats, 
     streakWeeks, 
     setActiveTab, 
@@ -87,7 +88,33 @@ export function RightPanel() {
   }, [places, setDetailPlace]);
 
   // Flatten planned places for display
-  const plannedEntries = Object.entries(weekPlans).filter(([day, ids]) => ids && ids.length > 0);
+  // Lấy các địa điểm được lên lịch cụ thể cho TUẦN NÀY (Thứ 2 - CN)
+  const thisWeekPlannedEntries = useMemo(() => {
+    const now = new Date();
+    const currentDay = now.getDay();
+    const distToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + distToMonday);
+
+    const days = [
+      "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"
+    ];
+
+    return days.map((dayName, idx) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + idx);
+      const fullDate = d.toISOString().split('T')[0];
+      const dateFormatted = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const ids = getPlannedPlaceIds ? getPlannedPlaceIds(dayName, fullDate, true) : (weekPlans[dayName] || []);
+      const dayPlaces = places.filter(p => ids.includes(p.id));
+      return {
+        day: dayName,
+        dateFormatted,
+        fullDate,
+        places: dayPlaces
+      };
+    }).filter(d => d.places.length > 0);
+  }, [places, weekPlans, getPlannedPlaceIds]);
 
   return (
     <aside className="hidden xl:flex flex-col w-[340px] shrink-0 h-screen sticky top-0 bg-[var(--color-bg-surface)] border-l border-[var(--color-border)] p-5 space-y-6 overflow-y-auto select-none z-20 transition-colors">
@@ -165,7 +192,7 @@ export function RightPanel() {
           </button>
         </div>
 
-        {plannedEntries.length === 0 ? (
+        {thisWeekPlannedEntries.length === 0 ? (
           <div className="text-center py-6 px-2">
             <p className="text-xs text-[var(--color-text-muted)]">Chưa có địa điểm nào được lên lịch cho tuần này.</p>
             <button 
@@ -177,13 +204,14 @@ export function RightPanel() {
           </div>
         ) : (
           <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1">
-            {plannedEntries.map(([day, ids]) => {
-              const dayPlaces = places.filter(p => ids.includes(p.id));
+            {thisWeekPlannedEntries.map((item) => {
+              const day = item.day;
+              const dayPlaces = item.places;
               if (dayPlaces.length === 0) return null;
               return (
-                <div key={day} className="rounded-xl bg-[var(--color-bg-surface)] p-2.5 border border-[var(--color-border-subtle)] shadow-sm">
+                <div key={item.fullDate} className="rounded-xl bg-[var(--color-bg-surface)] p-2.5 border border-[var(--color-border-subtle)] shadow-sm">
                   <span className="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 block mb-1">
-                    {day}
+                    {day} • {item.dateFormatted}
                   </span>
                   <div className="space-y-1">
                     {dayPlaces.map(p => (

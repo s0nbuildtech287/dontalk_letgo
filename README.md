@@ -1,66 +1,75 @@
-# 🚀 Đi Thôi (LetGoNow) — React JS (Desktop-First)
+# 🚀 Đi Thôi! (LetGoo) — Don't Talk, Let's Go!
 
-> **Mục tiêu ứng dụng:** Biến câu *"mai mốt đi"* thành hành động thật, đồng hành cùng người dùng theo trọn vẹn vòng đời:  
-> **Muốn đi** ➔ **Đã lên lịch** ➔ **Đã đi**.
+"Bữa nào rảnh đi nha!" — Câu nói cửa miệng quen thuộc của bao nhóm bạn nhưng 99% đều trôi vào quên lãng.
 
----
-
-## ⚡ Công Nghệ & Khởi Chạy Nhanh
-
-- **Framework**: **React 18** + **Vite 6**
-- **Styling**: **Tailwind CSS** + Custom Design Tokens (Tone cam san hô ấm `#FF6B4A`, nền kem `#FAF7F2`, Dark mode)
-- **Icons**: `lucide-react`
-- **Interactive Maps**: `leaflet` (hỗ trợ cả mini-map và full-map, tự động vẽ lộ trình polyline)
-- **State Management**: React Context (`StoreContext`) tự động đồng bộ hóa `localStorage`
-
-### Lệnh chạy môi trường phát triển:
-```bash
-npm install
-npm run dev
-```
-Truy cập: `http://localhost:3000`
-
-### Lệnh build sản phẩm:
-```bash
-npm run build
-npm run preview
-```
+Đi Thôi! (LetGoo) ra đời để biến những lời hẹn vu vơ thành hành trình thực tế, đồng hành cùng bạn và nhóm bạn từ lúc nhen nhóm ý định đến khi hoàn thành chuyến đi!
 
 ---
 
-## 📐 Kiến Trúc Layout (Desktop-First & Full-Width)
+## 🌟 Hành Trình Trải Nghiệm (User Lifecycle)
 
-- **Không giới hạn max-width hẹp**: Tận dụng toàn bộ chiều ngang màn hình máy tính, các card địa điểm luôn lấp đầy không gian.
-- **Bố cục 3 cột chuẩn Desktop**:
-  1. **Sidebar trái (`Sidebar.jsx` - 240px cố định)**: Thương hiệu, nút Thêm nhanh, Menu chính và chuyển đổi chế độ Sáng / Tối.
-  2. **Nội dung chính (`App.jsx` - Fluid)**: Lưới card co giãn tự động theo độ rộng màn hình.
-  3. **Panel phải (`RightPanel.jsx` - 340px)**: Xuất hiện ở màn hình $\ge$ 1280px (`xl`), chứa:
-     - 🔥 **Streak đi chơi** duy trì tuần liên tiếp
-     - 🗺️ **Bản đồ mini** ghim toàn bộ điểm hẹn
-     - 🗓️ **Kế hoạch tuần này**
-     - 📊 **Thống kê chuyển hóa**: Tỉ lệ biến "mai mốt" thành "đi thật".
-- **Responsive**:
-  - $\ge$ 1280px: Đầy đủ 3 cột
-  - 768px – 1279px: 2 cột (ẩn panel phải)
-  - < 768px: 1 cột + Mobile Bottom Navigation Tab Bar.
+Hệ thống quản lý địa điểm chặt chẽ theo 3 bước:
+
+[ Muốn đi ] ────────► [ Đã lên lịch ] ────────► [ Đã đi & Kỷ niệm ]
+(Lưu quán hot)        (Chọn tuần & giờ hẹn)      (Đánh giá & Lưu khoảnh khắc)
+
+1. Muốn đi (Wishlist): Gom tất cả các quán ăn ngon, tiệm cà phê chill, workshop hay ho lưu từ TikTok, Facebook, Google Maps về một nơi duy nhất.
+2. Đã lên lịch (Weekly Planner): Phân bổ địa điểm vào Tuần này hoặc Tuần sau, gắn khung giờ chi tiết và thứ tự di chuyển.
+3. Đã đi & Kỷ niệm (Journal): Đánh dấu đã đi, chấm sao đánh giá, viết cảm nhận chân thật và lưu lại những bức ảnh kỷ niệm đáng nhớ.
 
 ---
 
-## 🧩 Cấu Trúc Mã Nguồn React
+## ✨ Những Tính Năng Nổi Bật
 
-| React Component | Mô tả chức năng | File Path |
-| :--- | :--- | :--- |
-| `StoreContext.jsx` | Quản lý state toàn cục, filter, pub/sub, sync localStorage | [src/context/StoreContext.jsx](file:///C:/Users/XUAN%20SON/Desktop/Xuan%20Son%20Version/DontTalk_LetGoo/dontalk_letgo/src/context/StoreContext.jsx) |
-| `Sidebar.jsx` | Menu điều hướng, avatar, switch dark/light, nút thêm nhanh | [src/components/Sidebar.jsx](file:///C:/Users/XUAN%20SON/Desktop/Xuan%20Son%20Version/DontTalk_LetGoo/dontalk_letgo/src/components/Sidebar.jsx) |
-| `HomeView.jsx` | Trang chủ, cảnh báo ngâm quán > 14 ngày, thống kê nhanh | [src/components/HomeView.jsx](file:///C:/Users/XUAN%20SON/Desktop/Xuan%20Son%20Version/DontTalk_LetGoo/dontalk_letgo/src/components/HomeView.jsx) |
-| `WishlistView.jsx` | Danh sách Wishlist, hỗ trợ 3 chế độ xem (Lưới, Kanban, Bản đồ) | [src/components/WishlistView.jsx](file:///C:/Users/XUAN%20SON/Desktop/Xuan%20Son%20Version/DontTalk_LetGoo/dontalk_letgo/src/components/WishlistView.jsx) |
-| `PlaceCard.jsx` | Thẻ địa điểm, ảnh 4:3, tag giá, rating, đổi trạng thái, cảnh báo ngâm | [src/components/PlaceCard.jsx](file:///C:/Users/XUAN%20SON/Desktop/Xuan%20Son%20Version/DontTalk_LetGoo/dontalk_letgo/src/components/PlaceCard.jsx) |
-| `FilterBar.jsx` | Bộ lọc danh mục, mức giá, địa phương, search, switch view mode | [src/components/FilterBar.jsx](file:///C:/Users/XUAN%20SON/Desktop/Xuan%20Son%20Version/DontTalk_LetGoo/dontalk_letgo/src/components/FilterBar.jsx) |
-| `KanbanBoard.jsx` | Bảng Kanban 3 cột hỗ trợ kéo thả trạng thái | [src/components/KanbanBoard.jsx](file:///C:/Users/XUAN%20SON/Desktop/Xuan%20Son%20Version/DontTalk_LetGoo/dontalk_letgo/src/components/KanbanBoard.jsx) |
-| `FullMapView.jsx` | Bản đồ toàn màn hình hiển thị toàn bộ toạ độ điểm hẹn | [src/components/FullMapView.jsx](file:///C:/Users/XUAN%20SON/Desktop/Xuan%20Son%20Version/DontTalk_LetGoo/dontalk_letgo/src/components/FullMapView.jsx) |
-| `WeekPlanner.jsx` | Lập lịch từng ngày trong tuần + Vẽ lộ trình di chuyển Polyline | [src/components/WeekPlanner.jsx](file:///C:/Users/XUAN%20SON/Desktop/Xuan%20Son%20Version/DontTalk_LetGoo/dontalk_letgo/src/components/WeekPlanner.jsx) |
-| `AIPlanner.jsx` | Trợ lý AI sinh lịch trình theo ngân sách & địa điểm | [src/components/AIPlanner.jsx](file:///C:/Users/XUAN%20SON/Desktop/Xuan%20Son%20Version/DontTalk_LetGoo/dontalk_letgo/src/components/AIPlanner.jsx) |
-| `GroupView.jsx` | Hội Báo Sài Gòn, bình chọn (vote) điểm đến cho nhóm | [src/components/GroupView.jsx](file:///C:/Users/XUAN%20SON/Desktop/Xuan%20Son%20Version/DontTalk_LetGoo/dontalk_letgo/src/components/GroupView.jsx) |
-| `JournalView.jsx` | Nhật ký lưu giữ kỷ niệm và cảm nhận những chuyến đi đã qua | [src/components/JournalView.jsx](file:///C:/Users/XUAN%20SON/Desktop/Xuan%20Son%20Version/DontTalk_LetGoo/dontalk_letgo/src/components/JournalView.jsx) |
-| `RightPanel.jsx` | Streak tuần, Leaflet Mini-map, Tuần này đi đâu, conversion rate | [src/components/RightPanel.jsx](file:///C:/Users/XUAN%20SON/Desktop/Xuan%20Son%20Version/DontTalk_LetGoo/dontalk_letgo/src/components/RightPanel.jsx) |
-| `Modals.jsx` | Popup Thêm nhanh, Xem chi tiết, Chỉnh sửa, và Lên lịch ngày | [fe/src/components/Modals.jsx](file:///C:/Users/XUAN%20SON/Desktop/Xuan%20Son%20Version/DontTalk_LetGoo/dontalk_letgo/fe/src/components/Modals.jsx) |
+### 1. 🚨 Cảnh Báo "Ngâm Quán" > 14 Ngày
+- Đã bao lần bạn lưu một quán cả tháng trời mà chưa đặt chân tới?
+- Hệ thống tự động đếm ngày và gắn huy hiệu cảnh báo đỏ với các địa điểm bị ngâm quá 2 tuần, thôi thúc bạn lên lịch đi ngay cuối tuần này!
+
+### 2. 📅 Lập Lịch Trình Tuần & Tự Vẽ Lộ Trình (Smart Polyline)
+- Hỗ trợ xem linh hoạt giữa Tuần này, Tuần sau và các tuần kế tiếp hoàn toàn độc lập, không bị trùng lặp dữ liệu.
+- Hai chế độ xem: Xem theo ngày (lịch trình chi tiết từng giờ) và Cả tuần (ma trận tổng quan 7 ngày).
+- Tự động nối lộ trình di chuyển: Vẽ đường nối liên hoàn trên bản đồ vệ tinh theo thứ tự giờ hẹn các điểm trong ngày, giúp tối ưu quãng đường đi chơi.
+
+### 3. 🤖 Trợ Lý Ảo LetGoo AI (Google Gemini 3.8 Flash)
+- Trò chuyện tự nhiên, hóm hỉnh, am hiểu sâu sắc ẩm thực và du lịch các vùng miền (Hà Nội, Sài Gòn, Đà Lạt, Đà Nẵng, Phú Quốc...).
+- Hỏi kinh nghiệm, tìm quán theo ngân sách hoặc yêu cầu lên trọn gói lịch trình 1-2 ngày theo mốc giờ.
+- Thao tác 1-Click: Tự động bóc tách các địa điểm gợi ý để bạn bấm lưu thẳng vào Wishlist mà không cần gõ lại.
+
+### 4. 🗺️ Bộ 3 Chế Độ Xem Wishlist Đa Dạng
+- Dạng Lưới (Grid View): Thẻ thông tin trực quan, phân loại theo ẩm thực, cà phê, du lịch, chill out; phân trang gọn gàng 9 điểm/trang.
+- Bảng Kanban kéo thả (Kanban Board): Kéo thả trực quan giữa 3 cột trạng thái (Muốn đi ➔ Đã lên lịch ➔ Đã đi).
+- Bản Đồ Toàn Màn Hình (Interactive Full Map): Ghim trực tiếp toàn bộ tọa độ quán ăn trên bản đồ để dễ dàng tìm kiếm quán gần khu vực mình đang đứng.
+
+### 5. 👥 Hội Báo Sài Gòn (Group Voting)
+- Dành riêng cho hội bạn thân cùng bình chọn điểm hẹn cuối tuần.
+- Minh bạch số vote, tìm ra quán có sự đồng thuận cao nhất của cả nhóm chỉ trong vài giây.
+
+### 6. 🔥 Streak Đi Chơi Liên Tiếp & Thống Kê Hành Động
+- Theo dõi chuỗi tuần liên tiếp bạn bước ra đường trải nghiệm cuộc sống thay vì nằm lướt điện thoại ở nhà.
+- Thống kê tỷ lệ chuyển hóa từ lời nói "hôm nào đi" thành hành động đi thật.
+
+---
+
+## 🛠️ Công Nghệ & Điểm Nhấn Kỹ Thuật (Tech Stack)
+
+### Frontend (Desktop-First UI/UX)
+- React 18 & Vite 6: Tốc độ tải và render mượt mà.
+- Tailwind CSS: Tone cam san hô ấm (#FF6B4A), nền kem ấm cúng (#FAF7F2), chuyển đổi Sáng / Tối (Light & Dark Mode).
+- Leaflet & OpenStreetMap: Hiển thị bản đồ tương tác và vẽ polyline lộ trình di chuyển.
+- Lucide Icons: Bộ icon tinh gọn, hiện đại.
+- State Management: React Context quản lý state toàn cục chuẩn pub/sub, tự động đồng bộ thời gian thực.
+
+### Backend & Cơ Sở Dữ Liệu
+- Spring Boot 3.3 (Java 17): Xử lý RESTful API cho địa điểm, lịch trình tuần và tài khoản người dùng.
+- Spring Data JPA & PostgreSQL: Quản lý cơ sở dữ liệu quan hệ, tự động map thực thể.
+- Swagger / OpenAPI: Giao diện test và tài liệu API trực quan.
+- Hybrid Architecture: Cơ chế kết nối kép thông minh — ưu tiên Backend Spring Boot cục bộ, tự động chuyển đổi sang Google Sheets API và LocalStorage khi deploy tĩnh trên nền tảng Serverless (Vercel).
+
+### Trí Tuệ Nhân Tạo & Lưu Trữ Đám Mây
+- Google Generative AI (Gemini 3.8 Flash / 2.5 Flash Lite): Phân tích ngữ cảnh tiếng Việt và gợi ý lịch trình thông minh.
+- Cloudinary SDK: Tối ưu và lưu trữ hình ảnh tải lên.
+- Google Drive API (Multi-Service-Accounts): Cơ chế tự động xoay vòng cụm 8 Service Accounts để lưu ảnh dung lượng lớn an toàn.
+
+---
+
+Đi Thôi! — Đừng để thanh xuân trôi qua trong những câu hẹn "bữa nào rảnh"! 🛵💨

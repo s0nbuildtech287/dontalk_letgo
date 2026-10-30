@@ -434,17 +434,59 @@ export function StoreProvider({ children }) {
     api.places.vote(id);
   };
 
+  const getPlannedPlaceIds = (dayName, fullDate, isCurrentWeek = false) => {
+    const result = new Set();
+
+    // 1. Khớp chính xác theo ngày ISO (VD: "2026-11-05")
+    if (fullDate && weekPlans[fullDate] && Array.isArray(weekPlans[fullDate])) {
+      weekPlans[fullDate].forEach(id => result.add(id));
+    }
+
+    // 2. Kiểm tra trực tiếp place.scheduledDate khớp fullDate
+    if (fullDate) {
+      places.forEach(p => {
+        if (p.status === 'scheduled' && p.scheduledDate === fullDate) {
+          result.add(p.id);
+        }
+      });
+    }
+
+    // 3. Fallback cho dữ liệu cũ (chỉ áp dụng cho Tuần này, không tràn sang tuần sau)
+    if (isCurrentWeek && dayName && weekPlans[dayName] && Array.isArray(weekPlans[dayName])) {
+      weekPlans[dayName].forEach(id => {
+        const p = places.find(item => item.id === id);
+        // Nếu địa điểm có ngày hẹn cụ thể ở tuần khác thì KHÔNG hiển thị ở tuần này
+        if (p && p.scheduledDate && p.scheduledDate !== fullDate) {
+          return;
+        }
+        result.add(id);
+      });
+    }
+
+    return Array.from(result);
+  };
+
   const assignToPlan = (placeId, dayNames, options = {}) => {
     if (!checkAuth('lên lịch trình')) return;
     const days = Array.isArray(dayNames) ? dayNames : [dayNames];
     if (days.length === 0) return;
 
+    // Chuẩn bị danh sách entries gồm cả thứ và ngày cụ thể
+    const entries = (options.selectedEntries && Array.isArray(options.selectedEntries))
+      ? options.selectedEntries
+      : days.map(d => {
+          if (typeof d === 'object' && d.date) return d;
+          return { dayName: d, date: options.date || null };
+        });
+
     setUserWeekPlans(prev => {
       const updated = { ...prev };
-      days.forEach(day => {
-        const dayList = updated[day] || [];
-        if (!dayList.includes(placeId)) {
-          updated[day] = [...dayList, placeId];
+      entries.forEach(entry => {
+        // Lưu theo ngày cụ thể (YYYY-MM-DD) nếu có để tách bạch các tuần
+        const key = entry.date || entry.dayName;
+        const currentList = updated[key] || [];
+        if (!currentList.includes(placeId)) {
+          updated[key] = [...currentList, placeId];
         }
       });
       return updated;
@@ -452,50 +494,79 @@ export function StoreProvider({ children }) {
 
     setUserPlanDetails(prev => {
       const updated = { ...prev };
-      days.forEach(day => {
-        const key = `${day}-${placeId}`;
-        updated[key] = {
-          time: options.time || updated[key]?.time || '09:00',
-          note: options.note !== undefined ? options.note : (updated[key]?.note || ''),
-          date: options.date || updated[key]?.date || ''
+      entries.forEach(entry => {
+        const detailObj = {
+          time: options.time || '09:00',
+          note: options.note !== undefined ? options.note : '',
+          date: entry.date || options.date || '',
+          dayName: entry.dayName
         };
+        if (entry.date) {
+          updated[`${entry.date}-${placeId}`] = detailObj;
+        }
+        updated[`${entry.dayName}-${placeId}`] = detailObj;
       });
       return updated;
     });
 
-    changeStatus(placeId, 'scheduled', { scheduledDayName: days.join(', ') });
-    days.forEach(day => api.plans.assign(placeId, day));
+    const labelList = entries.map(e => e.dateFormatted ? `${e.dayName} (${e.dateFormatted})` : e.dayName);
+    const scheduledLabel = labelList.join(', ');
+    const primaryDate = entries.find(e => e.date)?.date || options.date || null;
+
+    changeStatus(placeId, 'scheduled', { 
+      scheduledDayName: scheduledLabel,
+      scheduledDate: primaryDate
+    });
+
+    days.forEach(day => api.plans.assign(placeId, typeof day === 'string' ? day : day.dayName));
   };
 
-  const removeFromPlan = (placeId, dayName) => {
+  const removeFromPlan = (placeId, dayName, date = null) => {
     if (!checkAuth('xóa khỏi lịch trình')) return;
     setUserWeekPlans(prev => {
-      if (!prev[dayName]) return prev;
-      return {
-        ...prev,
-        [dayName]: prev[dayName].filter(id => id !== placeId)
-      };
+      const updated = { ...prev };
+      if (date && updated[date]) {
+        updated[date] = updated[date].filter(id => id !== placeId);
+      }
+      if (dayName && updated[dayName]) {
+        updated[dayName] = updated[dayName].filter(id => id !== placeId);
+      }
+      return updated;
     });
 
     setUserPlanDetails(prev => {
       const updated = { ...prev };
-      delete updated[`${dayName}-${placeId}`];
+      if (date) delete updated[`${date}-${placeId}`];
+      if (dayName) delete updated[`${dayName}-${placeId}`];
       return updated;
     });
+
+    // Reset scheduled state on place
+    setUserPlaces(prev => prev.map(p => {
+      if (p.id === placeId) {
+        return {
+          ...p,
+          scheduledDate: null,
+          scheduledDayName: null,
+          status: 'want'
+        };
+      }
+      return p;
+    }));
 
     api.plans.remove(placeId, dayName);
   };
 
-  const updatePlanDetail = (placeId, dayName, updates = {}) => {
+  const updatePlanDetail = (placeId, dayName, updates = {}, date = null) => {
     setUserPlanDetails(prev => {
-      const key = `${dayName}-${placeId}`;
-      return {
-        ...prev,
-        [key]: {
-          ...(prev[key] || {}),
-          ...updates
-        }
-      };
+      const updated = { ...prev };
+      const dateKey = date ? `${date}-${placeId}` : null;
+      const dayKey = `${dayName}-${placeId}`;
+      if (dateKey) {
+        updated[dateKey] = { ...(prev[dateKey] || prev[dayKey] || {}), ...updates };
+      }
+      updated[dayKey] = { ...(prev[dayKey] || {}), ...updates };
+      return updated;
     });
   };
 
@@ -635,6 +706,7 @@ export function StoreProvider({ children }) {
     removeFromPlan,
     planDetails,
     updatePlanDetail,
+    getPlannedPlaceIds,
     // Modals
     isQuickAddOpen,
     setIsQuickAddOpen: handleSetIsQuickAddOpen,

@@ -23,6 +23,7 @@ import { useAppStore } from '../context/StoreContext';
 export function WeekPlanner() {
   const { 
     weekPlans, 
+    getPlannedPlaceIds,
     planDetails = {}, 
     places, 
     removeFromPlan, 
@@ -76,24 +77,34 @@ export function WeekPlanner() {
     return `${prefix} • ${start} – ${end}/${year}`;
   }, [weekCalendar, weekOffset]);
 
+  // Current selected day's calendar info in the active week
+  const currentCalendarDay = useMemo(() => {
+    return weekCalendar.find(d => d.dayName === selectedDay) || weekCalendar[0];
+  }, [weekCalendar, selectedDay]);
+
   // Current selected day's places with planDetails (sorted by time)
   const plannedPlaces = useMemo(() => {
-    const ids = weekPlans[selectedDay] || [];
+    const fullDate = currentCalendarDay?.fullDate;
+    const isCurrentWeek = weekOffset === 0;
+    const ids = getPlannedPlaceIds ? getPlannedPlaceIds(selectedDay, fullDate, isCurrentWeek) : (weekPlans[selectedDay] || []);
     const list = places
       .filter(p => ids.includes(p.id))
       .map(p => {
-        const detailKey = `${selectedDay}-${p.id}`;
-        const detail = planDetails[detailKey] || {};
+        const detailKey = `${fullDate}-${p.id}`;
+        const fallbackKey = `${selectedDay}-${p.id}`;
+        const detail = planDetails[detailKey] || planDetails[fallbackKey] || {};
         return {
           ...p,
           scheduledTime: detail.time || '09:00',
-          planNote: detail.note || ''
+          planNote: detail.note || '',
+          scheduledFullDate: fullDate,
+          scheduledDayName: selectedDay
         };
       });
 
     // Sort by scheduled time
     return list.sort((a, b) => (a.scheduledTime || '').localeCompare(b.scheduledTime || ''));
-  }, [weekPlans, selectedDay, places, planDetails]);
+  }, [weekPlans, selectedDay, currentCalendarDay, places, planDetails, weekOffset, getPlannedPlaceIds]);
 
   // Available places to add to plan (unvisited places in wishlist)
   const availablePlaces = useMemo(() => {
@@ -222,8 +233,18 @@ export function WeekPlanner() {
               Tuần này
             </button>
             <button
+              onClick={() => setWeekOffset(1)}
+              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
+                weekOffset === 1 
+                  ? 'bg-[var(--color-primary)] text-white shadow-xs' 
+                  : 'text-[var(--color-text-main)] hover:bg-[var(--color-bg-surface)]'
+              }`}
+            >
+              Tuần sau
+            </button>
+            <button
               onClick={() => setWeekOffset(prev => prev + 1)}
-              title="Tuần sau"
+              title="Tuần tiếp theo"
               className="p-1.5 rounded-xl text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] hover:bg-[var(--color-bg-surface)] transition-all"
             >
               <ChevronRight className="w-4 h-4" />
@@ -270,7 +291,9 @@ export function WeekPlanner() {
       {/* 2. DAY SELECTOR TABS (HIỂN THỊ RÕ THỨ VÀ NGÀY THÁNG) */}
       <div className="flex items-center gap-2.5 overflow-x-auto pb-2 select-none no-scrollbar">
         {weekCalendar.map((d) => {
-          const count = (weekPlans[d.dayName] || []).length;
+          const count = getPlannedPlaceIds 
+            ? getPlannedPlaceIds(d.dayName, d.fullDate, weekOffset === 0).length 
+            : (weekPlans[d.dayName] || []).length;
           const isSelected = selectedDay === d.dayName && plannerViewMode === 'single';
 
           return (
@@ -413,14 +436,20 @@ export function WeekPlanner() {
                       {/* Card Actions */}
                       <div className="flex items-center gap-1 shrink-0">
                         <button
-                          onClick={() => setEditingItem({ place: p, dayName: selectedDay, time: p.scheduledTime, note: p.planNote })}
+                          onClick={() => setEditingItem({ 
+                            place: p, 
+                            dayName: selectedDay, 
+                            date: currentCalendarDay?.fullDate, 
+                            time: p.scheduledTime, 
+                            note: p.planNote 
+                          })}
                           title="Sửa giờ & ghi chú"
                           className="p-2 rounded-xl text-[var(--color-text-muted)] hover:text-[#FF6B4A] hover:bg-[var(--color-bg-subtle)] transition-colors"
                         >
                           <Edit3 className="w-4 h-4" />
                         </button>
                         <button 
-                          onClick={() => removeFromPlan(p.id, selectedDay)}
+                          onClick={() => removeFromPlan(p.id, selectedDay, currentCalendarDay?.fullDate)}
                           title="Gỡ khỏi ngày này"
                           className="p-2 rounded-xl text-[var(--color-text-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
                         >
@@ -466,9 +495,15 @@ export function WeekPlanner() {
         /* 4. VIEW MODE B: 7-DAY WHOLE WEEK MATRIX OVERVIEW */
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           {weekCalendar.map((d) => {
-            const dayPlaces = (weekPlans[d.dayName] || []).map(pid => {
+            const ids = getPlannedPlaceIds 
+              ? getPlannedPlaceIds(d.dayName, d.fullDate, weekOffset === 0) 
+              : (weekPlans[d.dayName] || []);
+            const dayPlaces = ids.map(pid => {
               const place = places.find(p => p.id === pid);
-              const detail = planDetails[`${d.dayName}-${pid}`] || {};
+              if (!place) return null;
+              const detailKey = `${d.fullDate}-${pid}`;
+              const fallbackKey = `${d.dayName}-${pid}`;
+              const detail = planDetails[detailKey] || planDetails[fallbackKey] || {};
               return {
                 ...place,
                 scheduledTime: detail.time || '09:00',
@@ -573,14 +608,24 @@ export function WeekPlanner() {
       {editingItem && (
         <EditTimeModal
           item={editingItem}
-          weekDays={weekCalendar.map(d => d.dayName)}
+          weekCalendar={weekCalendar}
           onClose={() => setEditingItem(null)}
           onSave={(time, note, newDay) => {
-            if (newDay && newDay !== editingItem.dayName) {
-              removeFromPlan(editingItem.place.id, editingItem.dayName);
-              assignToPlan(editingItem.place.id, newDay, { time, note });
+            const targetCalDay = weekCalendar.find(d => d.dayName === newDay);
+            const newDate = targetCalDay?.fullDate;
+            if (newDay && (newDay !== editingItem.dayName || newDate !== editingItem.date)) {
+              removeFromPlan(editingItem.place.id, editingItem.dayName, editingItem.date);
+              assignToPlan(editingItem.place.id, [newDay], { 
+                time, 
+                note, 
+                selectedEntries: [{ 
+                  dayName: newDay, 
+                  date: newDate, 
+                  dateFormatted: targetCalDay?.dateFormatted 
+                }] 
+              });
             } else {
-              updatePlanDetail(editingItem.place.id, editingItem.dayName, { time, note });
+              updatePlanDetail(editingItem.place.id, editingItem.dayName, { time, note }, editingItem.date);
             }
             setEditingItem(null);
           }}
@@ -626,7 +671,14 @@ function AddToPlanModal({ availablePlaces, defaultDay, weekCalendar, onClose, on
   const handleSave = (e) => {
     e.preventDefault();
     if (!selectedPlaceId || selectedDays.length === 0) return;
-    onConfirm(selectedPlaceId, selectedDays, { time, note });
+    const selectedEntries = weekCalendar
+      .filter(d => selectedDays.includes(d.dayName))
+      .map(d => ({
+        dayName: d.dayName,
+        date: d.fullDate,
+        dateFormatted: d.dateFormatted
+      }));
+    onConfirm(selectedPlaceId, selectedDays, { time, note, selectedEntries });
   };
 
   return (
@@ -759,7 +811,7 @@ function AddToPlanModal({ availablePlaces, defaultDay, weekCalendar, onClose, on
 // -------------------------------------------------------------
 // SUB-MODAL 2: EDIT TIME & NOTE & MOVE DAY
 // -------------------------------------------------------------
-function EditTimeModal({ item, weekDays, onClose, onSave }) {
+function EditTimeModal({ item, weekCalendar = [], onClose, onSave }) {
   const [time, setTime] = useState(item.time || '09:00');
   const [note, setNote] = useState(item.note || '');
   const [targetDay, setTargetDay] = useState(item.dayName);
@@ -791,8 +843,10 @@ function EditTimeModal({ item, weekDays, onClose, onSave }) {
               onChange={(e) => setTargetDay(e.target.value)}
               className="w-full bg-[var(--color-bg-subtle)] text-[var(--color-text-main)] text-xs px-3 py-2.5 rounded-xl border border-[var(--color-border)] focus:outline-none"
             >
-              {weekDays.map(d => (
-                <option key={d} value={d}>{d}</option>
+              {weekCalendar.map(d => (
+                <option key={d.dayName} value={d.dayName}>
+                  {d.dayName} ({d.dateFormatted})
+                </option>
               ))}
             </select>
           </div>

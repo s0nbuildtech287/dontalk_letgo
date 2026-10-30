@@ -782,7 +782,14 @@ function ScheduleModal({ place, onClose, onAssign }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (selectedDays.length === 0) return;
-    onAssign(selectedDays, { time, note, weekOffset });
+    const selectedEntries = daysData
+      .filter(d => selectedDays.includes(d.name))
+      .map(d => ({
+        dayName: d.name,
+        date: d.fullDate,
+        dateFormatted: d.dateFormatted
+      }));
+    onAssign(selectedDays, { time, note, weekOffset, selectedEntries });
   };
 
   return (
