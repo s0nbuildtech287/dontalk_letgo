@@ -63,7 +63,7 @@ Hệ thống quản lý địa điểm chặt chẽ theo 3 bước:
 - Spring Boot 3.3 (Java 17): Xử lý RESTful API cho địa điểm, lịch trình tuần và tài khoản người dùng.
 - Spring Data JPA & PostgreSQL: Quản lý cơ sở dữ liệu quan hệ, tự động map thực thể.
 - Swagger / OpenAPI: Giao diện test và tài liệu API trực quan.
-- Hybrid Architecture: Cơ chế kết nối kép thông minh — ưu tiên Backend Spring Boot cục bộ, tự động chuyển đổi sang Google Sheets API và LocalStorage khi deploy tĩnh trên nền tảng Serverless (Vercel).
+- High-Availability Architecture: Cơ chế dự phòng và đồng bộ dữ liệu đa tầng (Cloud Failover & Offline-First) — kết nối trực tiếp RESTful API Backend và tự động kích hoạt bộ nhớ đệm cục bộ (Client-Side Persistence) đảm bảo ứng dụng luôn phản hồi tức thì và hoạt động mượt mà ngay cả khi môi trường mạng gián đoạn.
 
 ### Trí Tuệ Nhân Tạo & Lưu Trữ Đám Mây
 - Google Generative AI (Gemini 3.8 Flash / 2.5 Flash Lite): Phân tích ngữ cảnh tiếng Việt và gợi ý lịch trình thông minh.
